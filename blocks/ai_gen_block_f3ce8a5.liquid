@@ -1,0 +1,852 @@
+{% doc %}
+  @prompt
+    Create a homepage-only popup modal.
+    
+    STRUCTURE:
+    - Centered modal popup
+    - Dark overlay behind popup
+    - Close (X) button on top-right
+    - Popup container with rounded corners
+    - Content order:
+      1) Full-width image at the top
+      2) Heading
+      3) Description
+      4) Two CTA buttons
+    
+    IMAGE:
+    - Image must fill 100% width of popup
+    - No left or right padding around image
+    - Image touches popup edges
+    - Maintain aspect ratio
+    - Rounded corners only on top-left and top-right
+    - Image upload enabled in block settings
+    
+    CONTENT:
+    Heading text:
+    "Celebrate Holi with Vedic Spoons 🌸"
+    
+    Description text:
+    "Discover our limited-edition Holi collection — handcrafted festive sweets and elegant gift boxes made with purity and tradition."
+    
+    BUTTONS:
+    Add a button group below the description.
+    
+    Button 1 (Primary):
+    Text: "Get Holi Brochure"
+    Link type: External URL
+    URL: (Google Drive PDF – I will paste later)
+    
+    Button 2 (Secondary):
+    Text: "View Holi Collection"
+    Link type: Internal
+    URL: /collections/holi
+    
+    LAYOUT:
+    - Desktop: buttons side-by-side
+    - Mobile: buttons stacked vertically
+    - Buttons centered
+    
+    DESIGN:
+    - Popup background: soft beige
+    - Heading color: dark brown
+    - Description color: muted brown
+    - Primary button: solid brown/gold background with white text
+    - Secondary button: outline style with brown border
+    - Border radius: 16px
+    - Subtle shadow
+    
+    BEHAVIOR:
+    - Show only on homepage
+    - Appear after 3 seconds
+    - Show once per visitor per day
+    - Do not auto-redirect
+    - Do not add coupons, forms, or discounts
+    
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-popup-modal-{{ ai_gen_id }} {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .ai-popup-modal-{{ ai_gen_id }}.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .ai-popup-overlay-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: {{ block.settings.overlay_color }};
+    opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};
+  }
+
+  .ai-popup-container-{{ ai_gen_id }} {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: {{ block.settings.popup_background }};
+    border-radius: {{ block.settings.border_radius }}px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: {{ block.settings.popup_width }}px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .ai-popup-close-{{ ai_gen_id }} {
+    position: absolute;
+    top: {{ block.settings.close_button_spacing }}px;
+    right: {{ block.settings.close_button_spacing }}px;
+    background: {{ block.settings.close_button_background }};
+    border: none;
+    width: {{ block.settings.close_button_size }}px;
+    height: {{ block.settings.close_button_size }}px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: background-color 0.3s ease;
+  }
+
+  .ai-popup-close-{{ ai_gen_id }}:hover {
+    background: {{ block.settings.close_button_hover_background }};
+  }
+
+  .ai-popup-close-{{ ai_gen_id }} svg {
+    width: 50%;
+    height: 50%;
+    stroke: {{ block.settings.close_button_color }};
+  }
+
+  .ai-popup-image-wrapper-{{ ai_gen_id }} {
+    width: 100%;
+    border-radius: {{ block.settings.border_radius }}px {{ block.settings.border_radius }}px 0 0;
+    overflow: hidden;
+  }
+
+  .ai-popup-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .ai-popup-image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 300px;
+  }
+
+  .ai-popup-image-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    max-width: 200px;
+    max-height: 200px;
+  }
+
+  .ai-popup-empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .ai-popup-content-{{ ai_gen_id }} {
+    padding: {{ block.settings.content_padding }}px;
+  }
+
+  .ai-popup-heading-{{ ai_gen_id }} {
+    color: {{ block.settings.heading_color }};
+    font-size: {{ block.settings.heading_size }}px;
+    margin: 0 0 {{ block.settings.heading_spacing }}px 0;
+    text-align: {{ block.settings.text_alignment }};
+  }
+
+  .ai-popup-description-{{ ai_gen_id }} {
+    color: {{ block.settings.description_color }};
+    font-size: {{ block.settings.description_size }}px;
+    line-height: 1.6;
+    margin: 0 0 {{ block.settings.description_spacing }}px 0;
+    text-align: {{ block.settings.text_alignment }};
+  }
+
+  .ai-popup-buttons-{{ ai_gen_id }} {
+    display: flex;
+    gap: {{ block.settings.button_gap }}px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .ai-popup-button-primary-{{ ai_gen_id }} {
+    padding: {{ block.settings.button_padding_vertical }}px {{ block.settings.button_padding_horizontal }}px;
+    background-color: {{ block.settings.primary_button_background }};
+    color: {{ block.settings.primary_button_text_color }};
+    border: {{ block.settings.primary_button_border_width }}px solid {{ block.settings.primary_button_border }};
+    border-radius: {{ block.settings.button_border_radius }}px;
+    font-size: {{ block.settings.button_font_size }}px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-align: center;
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .ai-popup-button-primary-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.primary_button_hover_background }};
+    color: {{ block.settings.primary_button_hover_text_color }};
+    border-color: {{ block.settings.primary_button_hover_border }};
+  }
+
+  .ai-popup-button-secondary-{{ ai_gen_id }} {
+    padding: {{ block.settings.button_padding_vertical }}px {{ block.settings.button_padding_horizontal }}px;
+    background-color: {{ block.settings.secondary_button_background }};
+    color: {{ block.settings.secondary_button_text_color }};
+    border: {{ block.settings.secondary_button_border_width }}px solid {{ block.settings.secondary_button_border }};
+    border-radius: {{ block.settings.button_border_radius }}px;
+    font-size: {{ block.settings.button_font_size }}px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-align: center;
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .ai-popup-button-secondary-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.secondary_button_hover_background }};
+    color: {{ block.settings.secondary_button_hover_text_color }};
+    border-color: {{ block.settings.secondary_button_hover_border }};
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-popup-container-{{ ai_gen_id }} {
+      max-width: 95%;
+    }
+
+    .ai-popup-buttons-{{ ai_gen_id }} {
+      flex-direction: column;
+    }
+
+    .ai-popup-button-primary-{{ ai_gen_id }},
+    .ai-popup-button-secondary-{{ ai_gen_id }} {
+      width: 100%;
+    }
+
+    .ai-popup-heading-{{ ai_gen_id }} {
+      font-size: {{ block.settings.heading_size | times: 0.8 }}px;
+    }
+
+    .ai-popup-description-{{ ai_gen_id }} {
+      font-size: {{ block.settings.description_size | times: 0.9 }}px;
+    }
+  }
+{% endstyle %}
+
+<homepage-popup-{{ ai_gen_id }}
+  class="ai-popup-modal-{{ ai_gen_id }}"
+  data-delay="{{ block.settings.popup_delay }}"
+  data-show-once="{{ block.settings.show_once_per_day }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-popup-overlay-{{ ai_gen_id }}"></div>
+  
+  <div class="ai-popup-container-{{ ai_gen_id }}">
+    <button
+      class="ai-popup-close-{{ ai_gen_id }}"
+      aria-label="Close popup"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="ai-popup-image-wrapper-{{ ai_gen_id }}">
+      {% if block.settings.popup_image %}
+        <img
+          src="{{ block.settings.popup_image | image_url: width: 800 }}"
+          alt="{{ block.settings.popup_image.alt | escape }}"
+          loading="lazy"
+          width="{{ block.settings.popup_image.width }}"
+          height="{{ block.settings.popup_image.height }}"
+          class="ai-popup-image-{{ ai_gen_id }}"
+        >
+      {% else %}
+        <div class="ai-popup-image-placeholder-{{ ai_gen_id }}">
+          {{ 'image' | placeholder_svg_tag }}
+          <div class="ai-popup-empty-state-{{ ai_gen_id }}">
+            Add an image to complete your popup
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="ai-popup-content-{{ ai_gen_id }}">
+      {% if block.settings.heading != blank %}
+        <h2 class="ai-popup-heading-{{ ai_gen_id }}">{{ block.settings.heading }}</h2>
+      {% endif %}
+
+      {% if block.settings.description != blank %}
+        <div class="ai-popup-description-{{ ai_gen_id }}">{{ block.settings.description }}</div>
+      {% endif %}
+
+      <div class="ai-popup-buttons-{{ ai_gen_id }}">
+        {% if block.settings.primary_btn_text != blank and block.settings.primary_btn_link != blank %}
+          <a
+            href="{{ block.settings.primary_btn_link }}"
+            class="ai-popup-button-primary-{{ ai_gen_id }}"
+            {% if block.settings.primary_btn_link contains 'http' %}
+              target="_blank"
+              rel="noopener noreferrer"
+            {% endif %}
+          >
+            {{ block.settings.primary_btn_text }}
+          </a>
+        {% endif %}
+
+        {% if block.settings.secondary_btn_text != blank and block.settings.secondary_btn_link != blank %}
+          <a
+            href="{{ block.settings.secondary_btn_link }}"
+            class="ai-popup-button-secondary-{{ ai_gen_id }}"
+          >
+            {{ block.settings.secondary_btn_text }}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</homepage-popup-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class HomepagePopup{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.delay = parseInt(this.dataset.delay) * 1000;
+        this.showOncePerDay = this.dataset.showOnce === 'true';
+        this.cookieName = 'ai_popup_shown_{{ ai_gen_id }}';
+      }
+
+      connectedCallback() {
+        if (!this.isHomepage()) {
+          return;
+        }
+
+        if (this.showOncePerDay && this.hasBeenShownToday()) {
+          return;
+        }
+
+        this.setupEventListeners();
+        this.showPopup();
+      }
+
+      isHomepage() {
+        return window.location.pathname === '/' || window.location.pathname === '';
+      }
+
+      hasBeenShownToday() {
+        const lastShown = localStorage.getItem(this.cookieName);
+        if (!lastShown) return false;
+
+        const lastShownDate = new Date(parseInt(lastShown));
+        const today = new Date();
+        
+        return lastShownDate.toDateString() === today.toDateString();
+      }
+
+      markAsShown() {
+        localStorage.setItem(this.cookieName, Date.now().toString());
+      }
+
+      showPopup() {
+        setTimeout(() => {
+          this.classList.add('active');
+          document.body.style.overflow = 'hidden';
+          this.markAsShown();
+        }, this.delay);
+      }
+
+      closePopup() {
+        this.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      setupEventListeners() {
+        const closeButton = this.querySelector('.ai-popup-close-{{ ai_gen_id }}');
+        const overlay = this.querySelector('.ai-popup-overlay-{{ ai_gen_id }}');
+
+        closeButton.addEventListener('click', () => {
+          this.closePopup();
+        });
+
+        overlay.addEventListener('click', () => {
+          this.closePopup();
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && this.classList.contains('active')) {
+            this.closePopup();
+          }
+        });
+      }
+    }
+
+    customElements.define('homepage-popup-{{ ai_gen_id }}', HomepagePopup{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Homepage popup",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Popup behavior"
+    },
+    {
+      "type": "range",
+      "id": "popup_delay",
+      "label": "Delay before showing",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "default": 3
+    },
+    {
+      "type": "checkbox",
+      "id": "show_once_per_day",
+      "label": "Show once per day",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "popup_image",
+      "label": "Image"
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>Celebrate Holi with Vedic Spoons 🌸</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Discover our limited-edition Holi collection — handcrafted festive sweets and elegant gift boxes made with purity and tradition.</p>"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Primary button"
+    },
+    {
+      "type": "text",
+      "id": "primary_btn_text",
+      "label": "Text",
+      "default": "Get Holi Brochure"
+    },
+    {
+      "type": "url",
+      "id": "primary_btn_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Secondary button"
+    },
+    {
+      "type": "text",
+      "id": "secondary_btn_text",
+      "label": "Text",
+      "default": "View Holi Collection"
+    },
+    {
+      "type": "url",
+      "id": "secondary_btn_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Popup style"
+    },
+    {
+      "type": "range",
+      "id": "popup_width",
+      "label": "Width",
+      "min": 400,
+      "max": 800,
+      "step": 20,
+      "unit": "px",
+      "default": 600
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "content_padding",
+      "label": "Content padding",
+      "min": 20,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "color",
+      "id": "popup_background",
+      "label": "Background",
+      "default": "#f9f1e3"
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 70
+    },
+    {
+      "type": "header",
+      "content": "Close button"
+    },
+    {
+      "type": "range",
+      "id": "close_button_size",
+      "label": "Size",
+      "min": 24,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "close_button_spacing",
+      "label": "Spacing from edge",
+      "min": 8,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "color",
+      "id": "close_button_background",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "close_button_hover_background",
+      "label": "Hover background",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "color",
+      "id": "close_button_color",
+      "label": "Icon color",
+      "default": "#5e1111"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size",
+      "min": 16,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "heading_spacing",
+      "label": "Heading spacing",
+      "min": 8,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#5e1111"
+    },
+    {
+      "type": "range",
+      "id": "description_size",
+      "label": "Description size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "description_spacing",
+      "label": "Description spacing",
+      "min": 16,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "color",
+      "id": "description_color",
+      "label": "Description color",
+      "default": "#5e1111"
+    },
+    {
+      "type": "header",
+      "content": "Button style"
+    },
+    {
+      "type": "range",
+      "id": "button_font_size",
+      "label": "Font size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "button_padding_vertical",
+      "label": "Vertical padding",
+      "min": 8,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "button_padding_horizontal",
+      "label": "Horizontal padding",
+      "min": 16,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "button_gap",
+      "label": "Gap between buttons",
+      "min": 8,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "Primary button colors"
+    },
+    {
+      "type": "color",
+      "id": "primary_button_background",
+      "label": "Background",
+      "default": "#714924"
+    },
+    {
+      "type": "color",
+      "id": "primary_button_text_color",
+      "label": "Text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "primary_button_border",
+      "label": "Border",
+      "default": "#714924"
+    },
+    {
+      "type": "range",
+      "id": "primary_button_border_width",
+      "label": "Border width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "color",
+      "id": "primary_button_hover_background",
+      "label": "Hover background",
+      "default": "#5e1111"
+    },
+    {
+      "type": "color",
+      "id": "primary_button_hover_text_color",
+      "label": "Hover text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "primary_button_hover_border",
+      "label": "Hover border",
+      "default": "#5e1111"
+    },
+    {
+      "type": "header",
+      "content": "Secondary button colors"
+    },
+    {
+      "type": "color",
+      "id": "secondary_button_background",
+      "label": "Background",
+      "default": "#f9f1e3"
+    },
+    {
+      "type": "color",
+      "id": "secondary_button_text_color",
+      "label": "Text",
+      "default": "#5e1111"
+    },
+    {
+      "type": "color",
+      "id": "secondary_button_border",
+      "label": "Border",
+      "default": "#714924"
+    },
+    {
+      "type": "range",
+      "id": "secondary_button_border_width",
+      "label": "Border width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "default": 2
+    },
+    {
+      "type": "color",
+      "id": "secondary_button_hover_background",
+      "label": "Hover background",
+      "default": "#714924"
+    },
+    {
+      "type": "color",
+      "id": "secondary_button_hover_text_color",
+      "label": "Hover text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "secondary_button_hover_border",
+      "label": "Hover border",
+      "default": "#714924"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Homepage popup"
+    }
+  ]
+}
+{% endschema %}

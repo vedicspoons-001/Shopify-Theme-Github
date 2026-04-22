@@ -1,0 +1,308 @@
+<!doctype html>
+<html
+  class="no-js{% if request.design_mode %} shopify-design-mode{% endif %}"
+  lang="{{ request.locale.iso_code }}"
+>
+  <head>
+    {%- if settings.favicon != blank -%}
+      <link
+        rel="icon"
+        type="image/png"
+        href="{{ settings.favicon | image_url: width: 32, height: 32 }}"
+      >
+    {%- endif -%}
+
+    <link
+      rel="expect"
+      href="#MainContent"
+      blocking="render"
+      id="view-transition-render-blocker"
+    >
+
+    {%- render 'meta-tags' -%}
+    {%- render 'stylesheets' -%}
+    {%- render 'fonts' -%}
+    {%- render 'scripts' -%}
+    {%- render 'theme-styles-variables' -%}
+    {%- render 'color-schemes' -%}
+
+    {% if request.design_mode %}
+      {%- render 'theme-editor' -%}
+    {% endif %}
+
+    {{ content_for_header }}
+  </head>
+
+  <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
+    {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
+
+    <div id="header-group">
+      {% sections 'header-group' %}
+    </div>
+
+    <script
+      src="{{ 'critical.js' | asset_url }}"
+      type="module"
+      async
+      blocking="render"
+    ></script>
+
+    <main
+      id="MainContent"
+      class="content-for-layout"
+      role="main"
+      data-page-transition-enabled="{{ settings.page_transition_enabled }}"
+      data-product-transition="{{ settings.transition_to_main_product }}"
+      data-template="{{ template }}"
+    >
+      {{ content_for_layout }}
+    </main>
+
+    {% sections 'footer-group' %}
+    {% render 'search-modal' %}
+    {% if settings.quick_add or settings.mobile_quick_add %}
+      {% render 'quick-add-modal' %}
+    {% endif %}
+
+    <!-- CHATBASE INTEGRATION -->
+    <script>
+(function(){
+  if (!window.chatbase || window.chatbase("getState") !== "initialized") {
+    window.chatbase = (...arguments_) => {
+      if (!window.chatbase.q) { window.chatbase.q = []; }
+      window.chatbase.q.push(arguments_);
+    };
+    window.chatbase = new Proxy(window.chatbase, {
+      get(target, prop) {
+        if (prop === "q") { return target.q; }
+        return (...args) => target(prop, ...args);
+      }
+    });
+  }
+  const onLoad = function() {
+    const script = document.createElement("script");
+    script.src = "https://www.chatbase.co/embed.min.js";
+    script.id = "kGGTyVH36jks8p1ih6JLv";
+    script.domain = "www.chatbase.co";
+    document.body.appendChild(script);
+  };
+  if (document.readyState === "complete") {
+    onLoad();
+  } else {
+    window.addEventListener("load", onLoad);
+  }
+})();
+    </script>
+
+    <!-- GIFT BOX ANIMATION OVERLAY -->
+    <div
+      id="gift-box-animation-overlay"
+      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center; flex-direction:column;"
+    >
+      <div style="text-align:center; color:#fff;">
+        <h2 style="font-size:48px; margin-bottom:20px;">🎉</h2>
+        <p style="font-size:24px; font-weight:bold;">Gift Box Added!</p>
+      </div>
+      <div class="confetti-container">
+        {% for i in (1..20) %}
+          <div class="confetti"></div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <style>
+.confetti-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  animation: confetti-fall 3s linear forwards;
+}
+@keyframes confetti-fall {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+    </style>
+
+    <script src="{{ 'gift-box-animation.js' | asset_url }}" defer></script>
+
+    <!-- VARIANT / BOX SIZE AUTO-FIX FOR SELECT DROPDOWNS -->
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('form[action*="/cart/add"]').forEach(function (form) {
+    const selects = Array.from(form.querySelectorAll('select'));
+    if (selects.length < 2) return;
+    const primarySelect = selects[0];
+    const secondarySelect = selects[1];
+    primarySelect.addEventListener('change', function () {
+      const firstValidOption = Array.from(secondarySelect.options).find(function (opt) {
+        return !/unavailable/i.test(opt.textContent);
+      });
+      if (firstValidOption) {
+        secondarySelect.value = firstValidOption.value;
+      } else {
+        secondarySelect.selectedIndex = 0;
+      }
+      secondarySelect.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  });
+});
+    </script>
+
+    <!-- HIDE UNAVAILABLE VARIANT OPTIONS -->
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+  function hideUnavailableRadios(root) {
+    const radios = root.querySelectorAll('input[type="radio"][data-option-available="false"]');
+    radios.forEach(function (input) {
+      var wrap =
+        input.closest('label') ||
+        input.closest('button') ||
+        input.closest('.variant-option__button-label') ||
+        input.closest('.product-option, .product-option-value, .product-option__value, li, div, span') ||
+        input;
+      wrap.style.display = 'none';
+    });
+  }
+  hideUnavailableRadios(document);
+  var observer = new MutationObserver(function () {
+    hideUnavailableRadios(document);
+  });
+  observer.observe(document.documentElement, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ['data-option-available']
+  });
+});
+    </script>
+
+    <!-- RADIO SYNC: VARIENT → BOX SIZE -->
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('form[action*="/cart/add"]').forEach(function (form) {
+    function getBoxSizeRadios() {
+      return Array.from(form.querySelectorAll('input[type="radio"]')).filter(function (r) {
+        return r.name && r.name.indexOf('Box Size ') === 0;
+      });
+    }
+    function ensureBoxSizeSelected() {
+      const radios = getBoxSizeRadios();
+      if (!radios.length) return;
+      const validChecked = radios.find(function (r) {
+        if (!r.checked) return false;
+        if (r.disabled) return false;
+        if (r.getAttribute('aria-disabled') === 'true') return false;
+        if (r.offsetParent === null) return false;
+        return true;
+      });
+      if (validChecked) return;
+      const candidate = radios.find(function (r) {
+        return !r.disabled &&
+               r.getAttribute('aria-disabled') !== 'true' &&
+               r.offsetParent !== null;
+      });
+      if (candidate && !candidate.checked) {
+        candidate.checked = true;
+        candidate.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+    setTimeout(ensureBoxSizeSelected, 120);
+    form.addEventListener('change', function (event) {
+      const input = event.target;
+      if (input.type === 'radio' && input.name && input.name.indexOf('Varient ') === 0) {
+        setTimeout(ensureBoxSizeSelected, 80);
+      }
+    });
+  });
+});
+    </script>
+
+    {% if product %}
+    <script id="product-data-for-variants" type="application/json">
+      {{ product | json }}
+    </script>
+    {% endif %}
+
+    {{ 'sticky-cart-buttons.js' | asset_url | script_tag }}
+
+    <!-- ALL SWEETS MENU HIGHLIGHT -->
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    const menuItems = document.querySelectorAll('.menu-drawer__menu-item-text.wrap-text');
+    menuItems.forEach(function(item) {
+      if (item.textContent.trim() === 'All Sweets') {
+        const parent = item.closest('.menu-drawer__menu-item');
+        if (parent) {
+          parent.style.background = 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)';
+          parent.style.borderRadius = '10px';
+          parent.style.margin = '8px 12px';
+          parent.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+          item.style.color = '#FFFFFF';
+          item.style.fontWeight = '700';
+          item.style.padding = '14px 20px';
+        }
+      }
+    });
+  }, 500);
+});
+    </script>
+
+    <!-- FADE UP SCROLL ANIMATION -->
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  const elements = document.querySelectorAll('h1, h2, h3, .product-card, .collection-card, .card, img, .image-wrapper, section > *');
+  elements.forEach(el => el.classList.add('fade-up-element'));
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  elements.forEach(el => observer.observe(el));
+});
+    </script>
+
+    <!-- FLORAL BUTTON FLAVOR CYCLE -->
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+  const buttons = document.querySelectorAll(".custom-floral-btn");
+  buttons.forEach((btn) => {
+    let flavorIndex = 0;
+    btn.classList.add("flavor-0");
+    btn.addEventListener("mouseenter", () => {
+      btn.classList.remove("flavor-0", "flavor-1", "flavor-2");
+      flavorIndex = (flavorIndex + 1) % 3;
+      btn.classList.add("flavor-" + flavorIndex);
+    });
+  });
+});
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </body>
+</html>

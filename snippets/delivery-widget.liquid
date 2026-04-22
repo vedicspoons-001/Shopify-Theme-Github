@@ -1,0 +1,42 @@
+{% comment %}
+  Product Page Delivery Widget
+  Usage: {% render 'delivery-widget', product: product %}
+{% endcomment %}
+
+{% assign prep_days = product.metafields.custom.delivery_days | default: 2 %}
+
+<div id="vs-delivery-widget" class="vs-delivery-widget" data-prep-days="{{ prep_days }}">
+  <h3>🚚 Delivery Information</h3>
+
+  <div class="vs-pincode-row">
+    <input type="text" class="vs-pincode-input" placeholder="Enter Pincode" maxlength="6" inputmode="numeric" pattern="[0-9]*" />
+    <button class="vs-pincode-btn" type="button">Check</button>
+  </div>
+  <div class="vs-pincode-msg"></div>
+
+  <div class="vs-countdown">
+    ⚡ Order in <span class="vs-countdown-time">--:--:--</span> for Express delivery today!
+  </div>
+
+  <div class="vs-shipping-options">
+    <div class="vs-shipping-option vs-normal" style="display:none;">
+      <span class="vs-option-icon">🚚</span>
+      <div class="vs-option-body">
+        <div class="vs-option-label">Standard Delivery</div>
+        <div class="vs-option-date"><strong class="vs-normal-date">—</strong></div>
+      </div>
+    </div>
+    <div class="vs-shipping-option vs-express" style="display:none;">
+      <span class="vs-option-icon">⚡</span>
+      <div class="vs-option-body">
+        <div class="vs-option-label">Express Delivery</div>
+        <div class="vs-option-date"><strong class="vs-express-date">—</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vs-delivery-note" style="display:none;"></div>
+</div>
+
+{{ 'delivery.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'delivery.js' | asset_url }}" defer></script>

@@ -1,0 +1,414 @@
+{% doc %}
+  @prompt
+    Create a professional "Delivery Address Selector" section for the cart page with the following features:
+    
+    1. If customer is logged in:
+       - Show a search input box to filter/search through their saved addresses in real-time
+       - Display all saved addresses as selectable cards showing: full name, address line 1, address line 2, city, province, zip, country, phone
+       - Highlight the selected address card with a border/checkmark
+       - Include a "Use a different address" option to manually enter a new address
+    
+    2. If customer is NOT logged in:
+       - Show a clean manual address entry form
+    
+    3. On checkout button click:
+       - Intercept the click and build a checkout URL with the selected address pre-filled using Shopify's URL parameters: checkout[shipping_address][first_name], last_name, address1, address2, city, province, zip, country, phone
+       - Redirect to that pre-filled checkout URL
+    
+    Styling: Premium beige and gold color palette, card-style address items with hover effects, smooth real-time search filtering, fully mobile responsive, clean professional typography., not this much big , it must be simple and basic and if the customer is already logged in , it must show the address and selector option and mainly search option , so whichever the option theyy select they will be redircet to the checkout page with the same addresss okay 
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-address-selector-{{ ai_gen_id }} {
+    display: block;
+    width: 100%;
+    padding: {{ block.settings.padding }}px;
+    background-color: {{ block.settings.background_color }};
+    border-radius: {{ block.settings.border_radius }}px;
+  }
+
+  .ai-address-selector__title-{{ ai_gen_id }} {
+    font-size: {{ block.settings.title_size }}px;
+    color: {{ block.settings.text_color }};
+    margin: 0 0 16px 0;
+    font-weight: 600;
+  }
+
+  .ai-address-selector__search-{{ ai_gen_id }} {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid {{ block.settings.border_color }};
+    border-radius: {{ block.settings.input_radius }}px;
+    font-size: 14px;
+    margin-bottom: 16px;
+    color: {{ block.settings.text_color }};
+  }
+
+  .ai-address-selector__list-{{ ai_gen_id }} {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .ai-address-selector__item-{{ ai_gen_id }} {
+    padding: 12px;
+    border: 2px solid {{ block.settings.border_color }};
+    border-radius: {{ block.settings.card_radius }}px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #ffffff;
+  }
+
+  .ai-address-selector__item-{{ ai_gen_id }}:hover {
+    border-color: {{ block.settings.hover_color }};
+  }
+
+  .ai-address-selector__item-{{ ai_gen_id }}.selected {
+    border-color: {{ block.settings.selected_color }};
+    background-color: {{ block.settings.selected_bg }};
+  }
+
+  .ai-address-selector__item-name-{{ ai_gen_id }} {
+    font-weight: 600;
+    font-size: 14px;
+    color: {{ block.settings.text_color }};
+    margin-bottom: 4px;
+  }
+
+  .ai-address-selector__item-text-{{ ai_gen_id }} {
+    font-size: 13px;
+    color: {{ block.settings.text_color }};
+    line-height: 1.4;
+  }
+
+  .ai-address-selector__button-{{ ai_gen_id }} {
+    width: 100%;
+    padding: 12px 20px;
+    background-color: {{ block.settings.button_bg }};
+    color: {{ block.settings.button_text_color }};
+    border: none;
+    border-radius: {{ block.settings.button_radius }}px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .ai-address-selector__button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.button_hover }};
+  }
+
+  .ai-address-selector__no-results-{{ ai_gen_id }} {
+    text-align: center;
+    padding: 20px;
+    color: {{ block.settings.text_color }};
+    font-size: 14px;
+    display: none;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-address-selector-{{ ai_gen_id }} {
+      padding: {{ block.settings.padding | times: 0.7 }}px;
+    }
+  }
+{% endstyle %}
+
+<address-selector-{{ ai_gen_id }}
+  class="ai-address-selector-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+>
+  {% if customer %}
+    <h3 class="ai-address-selector__title-{{ ai_gen_id }}">{{ block.settings.title }}</h3>
+
+    <input
+      type="text"
+      class="ai-address-selector__search-{{ ai_gen_id }}"
+      placeholder="{{ block.settings.search_placeholder }}"
+      data-search
+    >
+
+    <div class="ai-address-selector__list-{{ ai_gen_id }}" data-list>
+      {% for address in customer.addresses %}
+        <div
+          class="ai-address-selector__item-{{ ai_gen_id }}"
+          data-address
+          data-first-name="{{ address.first_name | escape }}"
+          data-last-name="{{ address.last_name | escape }}"
+          data-address1="{{ address.address1 | escape }}"
+          data-address2="{{ address.address2 | escape }}"
+          data-city="{{ address.city | escape }}"
+          data-province="{{ address.province | escape }}"
+          data-zip="{{ address.zip | escape }}"
+          data-country="{{ address.country | escape }}"
+          data-phone="{{ address.phone | escape }}"
+        >
+          <div class="ai-address-selector__item-name-{{ ai_gen_id }}">
+            {{ address.first_name }} {{ address.last_name }}
+          </div>
+          <div class="ai-address-selector__item-text-{{ ai_gen_id }}">
+            {{ address.address1 }}{% if address.address2 != blank %}, {{ address.address2 }}{% endif %}<br>
+            {{ address.city }}, {{ address.province }} {{ address.zip }}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="ai-address-selector__no-results-{{ ai_gen_id }}" data-no-results>
+      No addresses found
+    </div>
+
+    <button class="ai-address-selector__button-{{ ai_gen_id }}" data-checkout>
+      {{ block.settings.button_label }}
+    </button>
+  {% else %}
+    <p style="text-align: center; padding: 20px; color: {{ block.settings.text_color }};">
+      Please log in to select a delivery address
+    </p>
+  {% endif %}
+</address-selector-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class AddressSelector{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.selected = null;
+      }
+
+      connectedCallback() {
+        this.search = this.querySelector('[data-search]');
+        this.list = this.querySelector('[data-list]');
+        this.items = this.querySelectorAll('[data-address]');
+        this.noResults = this.querySelector('[data-no-results]');
+        this.checkoutBtn = this.querySelector('[data-checkout]');
+
+        if (this.search) {
+          this.search.addEventListener('input', (e) => this.filterAddresses(e.target.value));
+        }
+
+        this.items.forEach((item) => {
+          item.addEventListener('click', () => this.selectAddress(item));
+        });
+
+        if (this.checkoutBtn) {
+          this.checkoutBtn.addEventListener('click', () => this.goToCheckout());
+        }
+      }
+
+      filterAddresses(query) {
+        const term = query.toLowerCase().trim();
+        let visible = 0;
+
+        this.items.forEach((item) => {
+          const text = item.textContent.toLowerCase();
+          const match = text.includes(term);
+
+          item.style.display = match ? 'block' : 'none';
+          if (match) visible++;
+        });
+
+        if (this.list) this.list.style.display = visible > 0 ? 'flex' : 'none';
+        if (this.noResults) this.noResults.style.display = visible === 0 ? 'block' : 'none';
+      }
+
+      selectAddress(item) {
+        this.items.forEach((i) => i.classList.remove('selected'));
+        item.classList.add('selected');
+
+        this.selected = {
+          firstName: item.dataset.firstName,
+          lastName: item.dataset.lastName,
+          address1: item.dataset.address1,
+          address2: item.dataset.address2,
+          city: item.dataset.city,
+          province: item.dataset.province,
+          zip: item.dataset.zip,
+          country: item.dataset.country,
+          phone: item.dataset.phone
+        };
+      }
+
+      goToCheckout() {
+        if (!this.selected) {
+          alert('Please select a delivery address');
+          return;
+        }
+
+        const params = new URLSearchParams();
+        params.append('checkout[shipping_address][first_name]', this.selected.firstName);
+        params.append('checkout[shipping_address][last_name]', this.selected.lastName);
+        params.append('checkout[shipping_address][address1]', this.selected.address1);
+        if (this.selected.address2) {
+          params.append('checkout[shipping_address][address2]', this.selected.address2);
+        }
+        params.append('checkout[shipping_address][city]', this.selected.city);
+        params.append('checkout[shipping_address][province]', this.selected.province);
+        params.append('checkout[shipping_address][zip]', this.selected.zip);
+        params.append('checkout[shipping_address][country]', this.selected.country);
+        if (this.selected.phone) {
+          params.append('checkout[shipping_address][phone]', this.selected.phone);
+        }
+
+        window.location.href = '/checkout?' + params.toString();
+      }
+    }
+
+    customElements.define('address-selector-{{ ai_gen_id }}', AddressSelector{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Address selector",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Select delivery address"
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search placeholder",
+      "default": "Search addresses..."
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Continue to checkout"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#f9f1e3"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#5e1111"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border",
+      "default": "#e6d5b8"
+    },
+    {
+      "type": "color",
+      "id": "hover_color",
+      "label": "Hover border",
+      "default": "#c9a961"
+    },
+    {
+      "type": "color",
+      "id": "selected_color",
+      "label": "Selected border",
+      "default": "#c9a961"
+    },
+    {
+      "type": "color",
+      "id": "selected_bg",
+      "label": "Selected background",
+      "default": "#fef9f0"
+    },
+    {
+      "type": "color",
+      "id": "button_bg",
+      "label": "Button background",
+      "default": "#5e1111"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover",
+      "label": "Button hover",
+      "default": "#4a0d0d"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "range",
+      "id": "padding",
+      "label": "Padding",
+      "min": 10,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Section border radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "card_radius",
+      "label": "Card border radius",
+      "min": 0,
+      "max": 16,
+      "step": 2,
+      "unit": "px",
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "input_radius",
+      "label": "Input border radius",
+      "min": 0,
+      "max": 16,
+      "step": 2,
+      "unit": "px",
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "button_radius",
+      "label": "Button border radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "label": "Title size",
+      "min": 14,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    }
+  ],
+  "presets": [
+    {
+      "name": "Address selector"
+    }
+  ]
+}
+{% endschema %}

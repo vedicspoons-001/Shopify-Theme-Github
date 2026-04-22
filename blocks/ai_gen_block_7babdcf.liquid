@@ -1,0 +1,618 @@
+{% doc %}
+  @prompt
+    Create a "Complete The Experience" product bundle section that reads from product.metafields.custom.complete_the_experience (a product reference list metafield). Display products in a horizontal row with large decorative plus symbols (+) between each product card. Each card must have equal height using CSS grid with grid-auto-rows or flexbox with align-items stretch. Card structure: product image (object-fit cover, same height for all), product title in a flex-grow container, price, and Add to cart button pinned to bottom. Use warm beige background (#F9F1E3), elegant serif heading "Complete The Experience", subtitle "Curated additions for this box" with decorative lines. Plus symbols should be 40-50px, brown/gold color, vertically centered. White product cards with rounded corners, shadows, beige buttons with cart icons. Settings: metafield_namespace (default: custom), metafield_key (default: complete_the_experience), section_title, section_subtitle, products_limit. Mobile: stack vertically with rotated plus symbols. Ensure proper Liquid syntax to loop through metafield.value products and handle empty states gracefully., they should not be soo far away from each other , good good now make them left align
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% liquid
+  assign metafield_namespace = block.settings.metafield_namespace
+  assign metafield_key = block.settings.metafield_key
+  assign products_limit = block.settings.products_limit
+  
+  if product.metafields[metafield_namespace][metafield_key].value != blank
+    assign bundle_products = product.metafields[metafield_namespace][metafield_key].value
+  else
+    assign bundle_products = blank
+  endif
+%}
+
+{% if bundle_products != blank %}
+  {% style %}
+    .ai-complete-experience-{{ ai_gen_id }} {
+      display: block;
+      width: 100%;
+      background-color: {{ block.settings.background_color }};
+      padding: {{ block.settings.section_padding }}px 20px;
+    }
+
+    .ai-complete-experience-container-{{ ai_gen_id }} {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .ai-complete-experience-header-{{ ai_gen_id }} {
+      text-align: left;
+      margin-bottom: 40px;
+    }
+
+    .ai-complete-experience-title-{{ ai_gen_id }} {
+      font-family: {{ block.settings.heading_font.family }}, {{ block.settings.heading_font.fallback_families }};
+      font-weight: {{ block.settings.heading_font.weight }};
+      font-size: {{ block.settings.heading_size }}px;
+      color: {{ block.settings.heading_color }};
+      margin: 0 0 12px 0;
+      position: relative;
+      display: inline-block;
+    }
+
+    .ai-complete-experience-title-{{ ai_gen_id }}::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: calc(100% + 16px);
+      width: {{ block.settings.decorative_line_width }}px;
+      height: 1px;
+      background-color: {{ block.settings.decorative_line_color }};
+    }
+
+    .ai-complete-experience-subtitle-{{ ai_gen_id }} {
+      font-size: {{ block.settings.subtitle_size }}px;
+      color: {{ block.settings.subtitle_color }};
+      margin: 0;
+    }
+
+    .ai-complete-experience-grid-{{ ai_gen_id }} {
+      display: flex;
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: {{ block.settings.card_spacing }}px;
+      flex-wrap: wrap;
+    }
+
+    .ai-complete-experience-item-{{ ai_gen_id }} {
+      display: flex;
+      align-items: center;
+      gap: {{ block.settings.card_spacing }}px;
+    }
+
+    .ai-complete-experience-plus-{{ ai_gen_id }} {
+      font-size: {{ block.settings.plus_size }}px;
+      color: {{ block.settings.plus_color }};
+      font-weight: 300;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .ai-complete-experience-card-{{ ai_gen_id }} {
+      background-color: {{ block.settings.card_background }};
+      border-radius: {{ block.settings.card_border_radius }}px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, {{ block.settings.card_shadow_opacity }});
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      width: {{ block.settings.card_width }}px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .ai-complete-experience-card-{{ ai_gen_id }}:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, {{ block.settings.card_shadow_opacity | times: 1.5 }});
+    }
+
+    .ai-complete-experience-image-wrapper-{{ ai_gen_id }} {
+      position: relative;
+      width: 100%;
+      padding-bottom: 100%;
+      overflow: hidden;
+      background-color: #f5f5f5;
+    }
+
+    .ai-complete-experience-image-{{ ai_gen_id }} {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .ai-complete-experience-card-content-{{ ai_gen_id }} {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .ai-complete-experience-product-title-{{ ai_gen_id }} {
+      font-size: {{ block.settings.product_title_size }}px;
+      color: {{ block.settings.product_title_color }};
+      margin: 0 0 8px 0;
+      flex-grow: 1;
+      line-height: 1.4;
+    }
+
+    .ai-complete-experience-product-title-{{ ai_gen_id }} a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .ai-complete-experience-product-title-{{ ai_gen_id }} a:hover {
+      text-decoration: underline;
+    }
+
+    .ai-complete-experience-price-{{ ai_gen_id }} {
+      font-size: {{ block.settings.price_size }}px;
+      color: {{ block.settings.price_color }};
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .ai-complete-experience-button-{{ ai_gen_id }} {
+      width: 100%;
+      padding: 12px 16px;
+      background-color: {{ block.settings.button_background }};
+      color: {{ block.settings.button_text_color }};
+      border: none;
+      border-radius: {{ block.settings.button_border_radius }}px;
+      font-size: {{ block.settings.button_text_size }}px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .ai-complete-experience-button-{{ ai_gen_id }}:hover {
+      background-color: {{ block.settings.button_hover_background }};
+    }
+
+    .ai-complete-experience-cart-icon-{{ ai_gen_id }} {
+      width: 18px;
+      height: 18px;
+    }
+
+    @media screen and (max-width: 749px) {
+      .ai-complete-experience-title-{{ ai_gen_id }}::after {
+        width: {{ block.settings.decorative_line_width | divided_by: 2 }}px;
+      }
+
+      .ai-complete-experience-grid-{{ ai_gen_id }} {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .ai-complete-experience-item-{{ ai_gen_id }} {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .ai-complete-experience-card-{{ ai_gen_id }} {
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .ai-complete-experience-plus-{{ ai_gen_id }} {
+        transform: rotate(90deg);
+      }
+    }
+  {% endstyle %}
+
+  <complete-experience-{{ ai_gen_id }} class="ai-complete-experience-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+    <div class="ai-complete-experience-container-{{ ai_gen_id }}">
+      <div class="ai-complete-experience-header-{{ ai_gen_id }}">
+        {% if block.settings.section_title != blank %}
+          <h2 class="ai-complete-experience-title-{{ ai_gen_id }}">
+            {{ block.settings.section_title }}
+          </h2>
+        {% endif %}
+        {% if block.settings.section_subtitle != blank %}
+          <p class="ai-complete-experience-subtitle-{{ ai_gen_id }}">
+            {{ block.settings.section_subtitle }}
+          </p>
+        {% endif %}
+      </div>
+
+      <div class="ai-complete-experience-grid-{{ ai_gen_id }}">
+        {% for bundle_product in bundle_products limit: products_limit %}
+          <div class="ai-complete-experience-item-{{ ai_gen_id }}">
+            {% unless forloop.first %}
+              <div class="ai-complete-experience-plus-{{ ai_gen_id }}">+</div>
+            {% endunless %}
+
+            <div class="ai-complete-experience-card-{{ ai_gen_id }}">
+              <div class="ai-complete-experience-image-wrapper-{{ ai_gen_id }}">
+                {% if bundle_product.featured_image %}
+                  <img
+                    src="{{ bundle_product.featured_image | image_url: width: 400 }}"
+                    alt="{{ bundle_product.featured_image.alt | escape }}"
+                    class="ai-complete-experience-image-{{ ai_gen_id }}"
+                    loading="lazy"
+                    width="400"
+                    height="400"
+                  >
+                {% else %}
+                  <div class="ai-complete-experience-image-placeholder-{{ ai_gen_id }}">
+                    {{ 'product-1' | placeholder_svg_tag }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="ai-complete-experience-card-content-{{ ai_gen_id }}">
+                <h3 class="ai-complete-experience-product-title-{{ ai_gen_id }}">
+                  <a href="{{ bundle_product.url }}">{{ bundle_product.title }}</a>
+                </h3>
+
+                <div class="ai-complete-experience-price-{{ ai_gen_id }}">
+                  {{ bundle_product.price | money }}
+                </div>
+
+                <form action="/cart/add" method="post" class="ai-complete-experience-form-{{ ai_gen_id }}">
+                  <input type="hidden" name="id" value="{{ bundle_product.selected_or_first_available_variant.id }}">
+                  <button
+                    type="submit"
+                    class="ai-complete-experience-button-{{ ai_gen_id }}"
+                    {% unless bundle_product.available %}disabled{% endunless %}
+                  >
+                    <svg class="ai-complete-experience-cart-icon-{{ ai_gen_id }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    {% if bundle_product.available %}
+                      {{ block.settings.button_text }}
+                    {% else %}
+                      Sold out
+                    {% endif %}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </complete-experience-{{ ai_gen_id }}>
+
+  <script>
+    (function() {
+      class CompleteExperience{{ ai_gen_id }} extends HTMLElement {
+        constructor() {
+          super();
+        }
+
+        connectedCallback() {
+          this.forms = this.querySelectorAll('.ai-complete-experience-form-{{ ai_gen_id }}');
+          this.setupEventListeners();
+        }
+
+        setupEventListeners() {
+          this.forms.forEach((form) => {
+            form.addEventListener('submit', (event) => {
+              event.preventDefault();
+              
+              const formData = new FormData(form);
+              const button = form.querySelector('.ai-complete-experience-button-{{ ai_gen_id }}');
+              const originalText = button.innerHTML;
+              
+              button.disabled = true;
+              button.innerHTML = 'Adding...';
+
+              fetch('/cart/add.js', {
+                method: 'POST',
+                body: formData
+              })
+              .then(response => response.json())
+              .then(data => {
+                button.innerHTML = 'Added!';
+                
+                setTimeout(() => {
+                  button.disabled = false;
+                  button.innerHTML = originalText;
+                }, 2000);
+
+                if (window.theme && window.theme.cart) {
+                  window.theme.cart.refresh();
+                }
+                
+                document.dispatchEvent(new CustomEvent('cart:refresh'));
+              })
+              .catch(error => {
+                console.error('Error:', error);
+                button.disabled = false;
+                button.innerHTML = originalText;
+              });
+            });
+          });
+        }
+      }
+
+      customElements.define('complete-experience-{{ ai_gen_id }}', CompleteExperience{{ ai_gen_id }});
+    })();
+  </script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Complete the experience",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Metafield settings"
+    },
+    {
+      "type": "text",
+      "id": "metafield_namespace",
+      "label": "Metafield namespace",
+      "default": "custom"
+    },
+    {
+      "type": "text",
+      "id": "metafield_key",
+      "label": "Metafield key",
+      "default": "complete_the_experience"
+    },
+    {
+      "type": "range",
+      "id": "products_limit",
+      "label": "Products limit",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Section content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "section_title",
+      "label": "Section title",
+      "default": "Complete The Experience"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "section_subtitle",
+      "label": "Section subtitle",
+      "default": "Curated additions for this box"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Add to cart"
+    },
+    {
+      "type": "header",
+      "content": "Section style"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#F9F1E3"
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "label": "Padding",
+      "min": 20,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "default": 60
+    },
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "font_picker",
+      "id": "heading_font",
+      "label": "Font",
+      "default": "serif"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Size",
+      "min": 20,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Color",
+      "default": "#5e1111"
+    },
+    {
+      "type": "range",
+      "id": "subtitle_size",
+      "label": "Subtitle size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "color",
+      "id": "subtitle_color",
+      "label": "Subtitle color",
+      "default": "#5e1111"
+    },
+    {
+      "type": "header",
+      "content": "Decorative line"
+    },
+    {
+      "type": "range",
+      "id": "decorative_line_width",
+      "label": "Width",
+      "min": 20,
+      "max": 150,
+      "step": 10,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "color",
+      "id": "decorative_line_color",
+      "label": "Color",
+      "default": "#C9A86A"
+    },
+    {
+      "type": "header",
+      "content": "Plus symbols"
+    },
+    {
+      "type": "range",
+      "id": "plus_size",
+      "label": "Size",
+      "min": 30,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 44
+    },
+    {
+      "type": "color",
+      "id": "plus_color",
+      "label": "Color",
+      "default": "#C9A86A"
+    },
+    {
+      "type": "header",
+      "content": "Product cards"
+    },
+    {
+      "type": "range",
+      "id": "card_width",
+      "label": "Card width",
+      "min": 150,
+      "max": 350,
+      "step": 10,
+      "unit": "px",
+      "default": 220
+    },
+    {
+      "type": "range",
+      "id": "card_spacing",
+      "label": "Spacing",
+      "min": 8,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "color",
+      "id": "card_background",
+      "label": "Background",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "range",
+      "id": "card_border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "card_shadow_opacity",
+      "label": "Shadow opacity",
+      "min": 0,
+      "max": 0.5,
+      "step": 0.1,
+      "default": 0.1
+    },
+    {
+      "type": "range",
+      "id": "product_title_size",
+      "label": "Title size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "color",
+      "id": "product_title_color",
+      "label": "Title color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "price_size",
+      "label": "Price size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "color",
+      "id": "price_color",
+      "label": "Price color",
+      "default": "#5e1111"
+    },
+    {
+      "type": "header",
+      "content": "Button"
+    },
+    {
+      "type": "color",
+      "id": "button_background",
+      "label": "Background",
+      "default": "#C9A86A"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_background",
+      "label": "Hover background",
+      "default": "#B8976A"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Text color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "button_text_size",
+      "label": "Text size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    }
+  ],
+  "presets": [
+    {
+      "name": "Complete the experience"
+    }
+  ]
+}
+{% endschema %}

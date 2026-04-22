@@ -1,0 +1,521 @@
+{% doc %}
+  @prompt
+    On mobile, the horizontal navigation bar has a horizontal scroll/slider that cuts off menu items (e.g., "Sweets" is partially visible). Fix this so that either: (1) all nav items wrap to a second line cleanly, OR (2) show the first few items and add a "See more" button/link on the right — but NO horizontal scrolling/slider. The nav bar has a warm beige background with dark maroon text. Keep the premium look. The fix should be mobile-only and not affect desktop layout., The button of see more must appear properly and there should be something to show them that they are on this page like an underline under the selected or on the page they are like if they are on home there is a line under it and if they are on nutriprash window then there is a line under it ], the more button must not appear half , why its appearing half it must view in full bubble, okay now one more thing that make veerything properly middle alligned and make sure this is for mobile only not desktyop okay , dosktop must not be affected at all , the text allignment means the whiole internall block is shifted or alligned to left which in case musr be in the middle , i wanted all in the middle , so i wanted that , if someone clicks see more then no option must show , direct the 3 line appearing in the left corner must option and show them other options , and also when they select it , then the name of the menu must appear in the places of nutriprash means in the center okay , if the person clicks more , then the main menu must automatically get option okay , not the drop down , so link the more button to main menu slider, now i wanted that if i select any other option in the main menu than the right side name of the menu in the header must change for eg , now syrup is showing okay , if i go to main menu and select sweets then instead of syrups it must show sweets there okay, if i selecxt other menu option then it should appear there in the bar automatically without changing anything the more will be there itself okay , everything must come in 1 line not 2
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-mobile-nav-fix-{{ ai_gen_id }} {
+    display: none;
+    width: 100%;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-mobile-nav-fix-{{ ai_gen_id }} {
+      display: block;
+      background-color: {{ block.settings.background_color }};
+      padding: {{ block.settings.vertical_padding }}px {{ block.settings.horizontal_padding }}px;
+      overflow: visible;
+      width: 100%;
+    }
+
+    .ai-mobile-nav-container-{{ ai_gen_id }} {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: nowrap;
+      width: 100%;
+    }
+
+    .ai-mobile-nav-list-{{ ai_gen_id }} {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: nowrap;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .ai-mobile-nav-item-{{ ai_gen_id }} {
+      flex-shrink: 0;
+    }
+
+    .ai-mobile-nav-link-{{ ai_gen_id }} {
+      display: block;
+      padding: 8px 12px;
+      color: {{ block.settings.text_color }};
+      text-decoration: none;
+      font-size: {{ block.settings.font_size }}px;
+      font-weight: {{ block.settings.font_weight }};
+      white-space: nowrap;
+      position: relative;
+      transition: opacity 0.2s ease;
+    }
+
+    .ai-mobile-nav-link-{{ ai_gen_id }}:hover {
+      opacity: 0.7;
+    }
+
+    .ai-mobile-nav-link-{{ ai_gen_id }}.ai-active-{{ ai_gen_id }}::after {
+      content: '';
+      position: absolute;
+      bottom: {{ block.settings.underline_offset }}px;
+      left: 12px;
+      right: 12px;
+      height: {{ block.settings.underline_thickness }}px;
+      background-color: {{ block.settings.active_underline_color }};
+    }
+
+    .ai-mobile-nav-more-button-{{ ai_gen_id }} {
+      flex-shrink: 0;
+      background-color: {{ block.settings.more_button_background }};
+      color: {{ block.settings.more_button_text }};
+      border: 1px solid {{ block.settings.more_button_border }};
+      border-radius: {{ block.settings.more_button_radius }}px;
+      padding: 8px 16px;
+      font-size: {{ block.settings.font_size }}px;
+      font-weight: {{ block.settings.font_weight }};
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .ai-mobile-nav-more-button-{{ ai_gen_id }}:hover {
+      background-color: {{ block.settings.more_button_hover_background }};
+      color: {{ block.settings.more_button_hover_text }};
+    }
+
+    .ai-mobile-nav-drawer-{{ ai_gen_id }} {
+      position: fixed;
+      top: 0;
+      left: -100%;
+      width: 80%;
+      max-width: 300px;
+      height: 100vh;
+      background-color: {{ block.settings.drawer_background }};
+      z-index: 9999;
+      transition: left 0.3s ease;
+      overflow-y: auto;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    }
+
+    .ai-mobile-nav-drawer-{{ ai_gen_id }}.ai-open-{{ ai_gen_id }} {
+      left: 0;
+    }
+
+    .ai-mobile-nav-drawer-header-{{ ai_gen_id }} {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border-bottom: 1px solid {{ block.settings.drawer_border_color }};
+    }
+
+    .ai-mobile-nav-drawer-title-{{ ai_gen_id }} {
+      font-size: 18px;
+      font-weight: 600;
+      color: {{ block.settings.drawer_text_color }};
+      margin: 0;
+    }
+
+    .ai-mobile-nav-close-button-{{ ai_gen_id }} {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: {{ block.settings.drawer_text_color }};
+      padding: 4px 8px;
+      line-height: 1;
+    }
+
+    .ai-mobile-nav-drawer-list-{{ ai_gen_id }} {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .ai-mobile-nav-drawer-item-{{ ai_gen_id }} {
+      border-bottom: 1px solid {{ block.settings.drawer_border_color }};
+    }
+
+    .ai-mobile-nav-drawer-link-{{ ai_gen_id }} {
+      display: block;
+      padding: 16px;
+      color: {{ block.settings.drawer_text_color }};
+      text-decoration: none;
+      font-size: {{ block.settings.font_size }}px;
+      transition: background-color 0.2s ease;
+      position: relative;
+    }
+
+    .ai-mobile-nav-drawer-link-{{ ai_gen_id }}.ai-active-{{ ai_gen_id }} {
+      background-color: {{ block.settings.drawer_active_background }};
+      font-weight: 600;
+    }
+
+    .ai-mobile-nav-drawer-link-{{ ai_gen_id }}.ai-active-{{ ai_gen_id }}::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background-color: {{ block.settings.active_underline_color }};
+    }
+
+    .ai-mobile-nav-drawer-link-{{ ai_gen_id }}:hover {
+      background-color: {{ block.settings.drawer_hover_background }};
+    }
+
+    .ai-mobile-nav-overlay-{{ ai_gen_id }} {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 9998;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .ai-mobile-nav-overlay-{{ ai_gen_id }}.ai-open-{{ ai_gen_id }} {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-mobile-nav-fix-{{ ai_gen_id }} {
+      display: none !important;
+    }
+  }
+{% endstyle %}
+
+<mobile-nav-{{ ai_gen_id }} class="ai-mobile-nav-fix-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-mobile-nav-container-{{ ai_gen_id }}">
+    <ul class="ai-mobile-nav-list-{{ ai_gen_id }}">
+      {% assign visible_count = 0 %}
+      {% for link in linklists[block.settings.menu].links %}
+        {% if visible_count < block.settings.visible_items_count %}
+          <li class="ai-mobile-nav-item-{{ ai_gen_id }}">
+            <a 
+              href="{{ link.url }}" 
+              class="ai-mobile-nav-link-{{ ai_gen_id }} {% if link.active or link.child_active %}ai-active-{{ ai_gen_id }}{% endif %}"
+            >
+              {{ link.title }}
+            </a>
+          </li>
+          {% assign visible_count = visible_count | plus: 1 %}
+        {% endif %}
+      {% endfor %}
+    </ul>
+
+    {% if linklists[block.settings.menu].links.size > block.settings.visible_items_count %}
+      <button class="ai-mobile-nav-more-button-{{ ai_gen_id }}" data-more-button aria-label="Open menu">
+        {{ block.settings.more_button_label }}
+      </button>
+    {% endif %}
+  </div>
+
+  <div class="ai-mobile-nav-overlay-{{ ai_gen_id }}" data-overlay></div>
+
+  <div class="ai-mobile-nav-drawer-{{ ai_gen_id }}" data-drawer>
+    <div class="ai-mobile-nav-drawer-header-{{ ai_gen_id }}">
+      <h2 class="ai-mobile-nav-drawer-title-{{ ai_gen_id }}">{{ block.settings.drawer_title }}</h2>
+      <button class="ai-mobile-nav-close-button-{{ ai_gen_id }}" aria-label="Close menu" data-close>×</button>
+    </div>
+    <ul class="ai-mobile-nav-drawer-list-{{ ai_gen_id }}">
+      {% for link in linklists[block.settings.menu].links %}
+        <li class="ai-mobile-nav-drawer-item-{{ ai_gen_id }}">
+          <a 
+            href="{{ link.url }}" 
+            class="ai-mobile-nav-drawer-link-{{ ai_gen_id }} {% if link.active or link.child_active %}ai-active-{{ ai_gen_id }}{% endif %}"
+          >
+            {{ link.title }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</mobile-nav-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class MobileNav{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.moreButton = this.querySelector('[data-more-button]');
+        this.drawer = this.querySelector('[data-drawer]');
+        this.overlay = this.querySelector('[data-overlay]');
+        this.closeButton = this.querySelector('[data-close]');
+      }
+
+      connectedCallback() {
+        if (this.moreButton) {
+          this.moreButton.addEventListener('click', this.openDrawer.bind(this));
+        }
+        this.closeButton.addEventListener('click', this.closeDrawer.bind(this));
+        this.overlay.addEventListener('click', this.closeDrawer.bind(this));
+        document.addEventListener('keydown', this.handleEscape.bind(this));
+      }
+
+      openDrawer() {
+        this.drawer.classList.add('ai-open-{{ ai_gen_id }}');
+        this.overlay.classList.add('ai-open-{{ ai_gen_id }}');
+        document.body.style.overflow = 'hidden';
+      }
+
+      closeDrawer() {
+        this.drawer.classList.remove('ai-open-{{ ai_gen_id }}');
+        this.overlay.classList.remove('ai-open-{{ ai_gen_id }}');
+        document.body.style.overflow = '';
+      }
+
+      handleEscape(event) {
+        if (event.key === 'Escape' && this.drawer.classList.contains('ai-open-{{ ai_gen_id }}')) {
+          this.closeDrawer();
+        }
+      }
+
+      disconnectedCallback() {
+        if (this.moreButton) {
+          this.moreButton.removeEventListener('click', this.openDrawer.bind(this));
+        }
+        this.closeButton.removeEventListener('click', this.closeDrawer.bind(this));
+        this.overlay.removeEventListener('click', this.closeDrawer.bind(this));
+        document.removeEventListener('keydown', this.handleEscape.bind(this));
+      }
+    }
+
+    customElements.define('mobile-nav-{{ ai_gen_id }}', MobileNav{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Mobile nav fix",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Menu"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "main-menu"
+    },
+    {
+      "type": "range",
+      "id": "visible_items_count",
+      "label": "Visible items",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 3,
+      "info": "Number of menu items to show before More button"
+    },
+    {
+      "type": "header",
+      "content": "Active page indicator"
+    },
+    {
+      "type": "color",
+      "id": "active_underline_color",
+      "label": "Underline color",
+      "default": "#5e1111"
+    },
+    {
+      "type": "range",
+      "id": "underline_thickness",
+      "label": "Underline thickness",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "underline_offset",
+      "label": "Underline offset",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "unit": "px",
+      "default": 2,
+      "info": "Distance from bottom"
+    },
+    {
+      "type": "header",
+      "content": "Navigation bar style"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#f9f1e3"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#5e1111"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "label": "Font weight",
+      "options": [
+        {
+          "value": "400",
+          "label": "Normal"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ],
+      "default": "500"
+    },
+    {
+      "type": "range",
+      "id": "vertical_padding",
+      "label": "Vertical padding",
+      "min": 8,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "horizontal_padding",
+      "label": "Horizontal padding",
+      "min": 8,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "More button"
+    },
+    {
+      "type": "text",
+      "id": "more_button_label",
+      "label": "Button text",
+      "default": "More"
+    },
+    {
+      "type": "color",
+      "id": "more_button_background",
+      "label": "Background",
+      "default": "#5e1111"
+    },
+    {
+      "type": "color",
+      "id": "more_button_text",
+      "label": "Text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "more_button_border",
+      "label": "Border",
+      "default": "#5e1111"
+    },
+    {
+      "type": "color",
+      "id": "more_button_hover_background",
+      "label": "Hover background",
+      "default": "#7a1515"
+    },
+    {
+      "type": "color",
+      "id": "more_button_hover_text",
+      "label": "Hover text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "more_button_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Drawer"
+    },
+    {
+      "type": "text",
+      "id": "drawer_title",
+      "label": "Drawer title",
+      "default": "Menu"
+    },
+    {
+      "type": "color",
+      "id": "drawer_background",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "drawer_text_color",
+      "label": "Text",
+      "default": "#5e1111"
+    },
+    {
+      "type": "color",
+      "id": "drawer_border_color",
+      "label": "Border",
+      "default": "rgba(94,17,17,0.1)"
+    },
+    {
+      "type": "color",
+      "id": "drawer_active_background",
+      "label": "Active item background",
+      "default": "rgba(94,17,17,0.05)"
+    },
+    {
+      "type": "color",
+      "id": "drawer_hover_background",
+      "label": "Hover background",
+      "default": "rgba(94,17,17,0.08)"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Mobile nav fix"
+    }
+  ]
+}
+{% endschema %}

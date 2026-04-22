@@ -1,0 +1,390 @@
+
+
+
+
+
+
+
+/* ============================================================
+   PREMIUM CART — v2  |  Revised from live screenshot
+   Brand palette: warm beige bg · terracotta accent · ivory card
+   Philosophy: quiet luxury — Aesop / Byredo aesthetic
+   ============================================================ */
+
+/* ── TOKENS (matches your actual brand colours) ─────────── */
+:root {
+  --brand-bg:       #ede8df;
+  --brand-card:     #ffffff;
+  --brand-accent:   #7a3b2e;
+  --brand-accent-h: #5e2d22;
+  --ink:            #1a1a1a;
+  --ink-mid:        #6b6560;
+  --ink-light:      #b8b0a8;
+  --radius-sm:      8px;
+  --radius-md:      14px;
+  --radius-pill:    100px;
+  --ease:           cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ── FADE-IN ANIMATION ───────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── SUMMARY CARD ────────────────────────────────────────── */
+.cart-page__summary {
+  background: var(--brand-card) !important;
+  border-radius: var(--radius-md) !important;
+  border: none !important;
+  box-shadow: 0 2px 20px rgba(90, 55, 40, .08) !important;
+  animation: fadeUp .5s var(--ease) both;
+}
+
+.cart-page__summary hr,
+.cart-page__summary [class*="divider"],
+.cart-page__summary [class*="separator"] {
+  display: none !important;
+}
+
+.cart-page__summary *,
+.cart__summary-totals * {
+  border-color: transparent !important;
+}
+
+/* ── TOTALS ROWS ─────────────────────────────────────────── */
+.cart__summary-totals {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 24px !important;
+}
+
+.cart__summary-totals tr,
+.cart__summary-totals td,
+.cart__summary-totals th,
+.cart__summary-totals li,
+.cart__summary-totals > * {
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  padding-block: 8px !important;
+}
+
+.cart__summary-totals [class*="label"],
+.cart__summary-totals [class*="title"],
+.cart__summary-totals td:first-child,
+.cart__summary-totals th:first-child {
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  color: var(--ink-mid) !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+}
+
+/* ── TOTAL PRICE CONTAINER ───────────────────────────────── */
+.cart__total-container {
+  border: none !important;
+  border-top: none !important;
+  background: var(--brand-bg) !important;
+  border-radius: var(--radius-sm) !important;
+  margin: 16px 24px !important;
+  padding: 20px !important;
+}
+
+.cart__total-container [class*="label"],
+.cart__total-container [class*="title"],
+.cart__total-container td:first-child {
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  letter-spacing: .15em !important;
+  text-transform: uppercase !important;
+  color: var(--ink-mid) !important;
+}
+
+.cart__total-container [class*="price"],
+.cart__total-container [class*="total-price"],
+.cart__total-container td:last-child,
+.cart__total-container .price {
+  font-size: 28px !important;
+  font-weight: 300 !important;
+  letter-spacing: -.02em !important;
+  color: var(--ink) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.cart__total-container p,
+.cart__total-container small,
+.cart__total-container [class*="note"],
+.cart__total-container [class*="tax"] {
+  font-size: 11px !important;
+  color: var(--ink-light) !important;
+  margin-top: 4px !important;
+  font-style: italic !important;
+}
+
+/* ── CHECKOUT BUTTON — the real hero ─────────────────────── */
+.cart__checkout-button,
+a.cart__checkout-button,
+button.cart__checkout-button,
+[class*="checkout-button"],
+form[action*="/checkout"] > button,
+form[action*="/checkout"] > .button,
+.cart-page__summary .button--primary,
+.cart-page__summary input[type="submit"],
+.cart-page__summary button[type="submit"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: calc(100% - 48px) !important;
+  margin: 0 24px 24px !important;
+  padding: 19px 32px !important;
+  background: var(--brand-accent) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: var(--radius-pill) !important;
+  box-shadow:
+    0 4px 20px rgba(122, 59, 46, .35),
+    0 1px 4px rgba(122, 59, 46, .20) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: .18em !important;
+  text-transform: uppercase !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  transition:
+    background 220ms var(--ease),
+    box-shadow 220ms var(--ease),
+    transform 180ms var(--ease) !important;
+  animation: fadeUp .6s .15s var(--ease) both;
+}
+
+.cart__checkout-button:hover,
+[class*="checkout-button"]:hover,
+.cart-page__summary button[type="submit"]:hover,
+.cart-page__summary input[type="submit"]:hover {
+  background: var(--brand-accent-h) !important;
+  box-shadow:
+    0 8px 28px rgba(122, 59, 46, .40),
+    0 2px 6px rgba(122, 59, 46, .18) !important;
+  transform: translateY(-2px) !important;
+}
+
+.cart__checkout-button:active,
+[class*="checkout-button"]:active {
+  transform: translateY(0px) !important;
+  box-shadow: 0 2px 8px rgba(122, 59, 46, .25) !important;
+}
+
+/* ── TRUST ICONS ─────────────────────────────────────────── */
+.checkout-icons,
+[class*="checkout-icon"],
+[class*="payment-icon"] {
+  justify-content: center !important;
+  gap: 10px !important;
+  padding: 0 24px 20px !important;
+  opacity: 0.3 !important;
+  filter: grayscale(1) !important;
+}
+
+/* ── DS DELIVERY BLOCK WRAPPER ───────────────────────────── */
+#ds-date-piker-block {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  animation: fadeUp .5s .1s var(--ease) both;
+}
+
+/* 3-button method row */
+#ds-date-piker-block > *:first-child,
+[class*="ds-method-wrapper"],
+[class*="ds-tab-wrapper"],
+[class*="ds-delivery-type"] {
+  display: flex !important;
+  gap: 8px !important;
+  padding: 16px !important;
+  background: var(--brand-bg) !important;
+  border-radius: var(--radius-md) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Each method button */
+.ds-single-image-block {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 14px 8px !important;
+  background: var(--brand-card) !important;
+  border: 1.5px solid transparent !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  transition:
+    border-color 200ms var(--ease),
+    box-shadow 200ms var(--ease) !important;
+}
+
+.ds-single-image-block:hover {
+  border-color: var(--ink-light) !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06) !important;
+}
+
+/* Active/selected — override inline style too */
+.ds-single-image-block.active,
+.ds-single-image-block[class*="active"],
+.ds-single-image-block.selected,
+.ds-single-image-block[style*="border"] {
+  border: 1.5px solid var(--brand-accent) !important;
+  box-shadow: 0 2px 12px rgba(122, 59, 46, .12) !important;
+}
+
+.ds-single-image-block span,
+.ds-single-image-block p,
+.ds-single-image-block [class*="label"],
+.ds-single-image-block [class*="text"] {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+  color: var(--ink-mid) !important;
+  text-align: center !important;
+  transition: color 200ms var(--ease) !important;
+}
+
+.ds-single-image-block.active span,
+.ds-single-image-block[style*="border"] span,
+.ds-single-image-block.active p,
+.ds-single-image-block[style*="border"] p {
+  color: var(--brand-accent) !important;
+}
+
+/* Mute cartoon icons */
+.ds-single-image-block img {
+  width: 22px !important;
+  height: 22px !important;
+  filter: grayscale(1) opacity(.35) !important;
+  transition: filter 200ms var(--ease) !important;
+}
+
+.ds-single-image-block.active img,
+.ds-single-image-block[style*="border"] img {
+  filter: grayscale(1) opacity(.65) !important;
+}
+
+/* ── LOCATION ROW (Mumbai, Lower Parel) ──────────────────── */
+[class*="ds-location"],
+[class*="ds-store"],
+#ds-date-piker-block [class*="location"] {
+  background: var(--brand-card) !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 14px 16px !important;
+  margin: 8px 16px !important;
+  box-shadow: 0 1px 6px rgba(0,0,0,.05) !important;
+}
+
+[class*="ds-location"] strong,
+[class*="ds-store"] strong,
+[class*="ds-store-name"] {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--ink) !important;
+}
+
+[class*="ds-location"] a,
+[class*="ds-store"] a {
+  font-size: 11px !important;
+  color: var(--ink-mid) !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+
+/* ── DATE / TIME INPUTS ──────────────────────────────────── */
+.ds-date-picker,
+.ds-time-picker,
+[class*="ds-date"],
+[class*="ds-time"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 16px !important;
+  margin-bottom: 12px !important;
+}
+
+.ds-date-picker input,
+.ds-time-picker input,
+.ds-date-picker select,
+.ds-time-picker select,
+#ds-date-piker-block input,
+#ds-date-piker-block select {
+  width: 100% !important;
+  padding: 14px 16px !important;
+  background: var(--brand-card) !important;
+  border: 1.5px solid #e8e3db !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  color: var(--ink) !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  transition: border-color 200ms var(--ease) !important;
+}
+
+#ds-date-piker-block input:focus,
+#ds-date-piker-block select:focus {
+  border-color: var(--brand-accent) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(122, 59, 46, .10) !important;
+}
+
+#ds-date-piker-block [class*="icon"],
+#ds-date-piker-block svg {
+  opacity: .35 !important;
+  fill: var(--ink-mid) !important;
+}
+
+/* ── RADIO BUTTON ────────────────────────────────────────── */
+#ds-date-piker-block input[type="radio"] {
+  accent-color: var(--brand-accent) !important;
+  width: 16px !important;
+  height: 16px !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* ── FLATPICKR CALENDAR ──────────────────────────────────── */
+.flatpickr-calendar {
+  border: none !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,.14) !important;
+  background: var(--brand-card) !important;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover {
+  background: var(--brand-accent) !important;
+  border-color: var(--brand-accent) !important;
+  border-radius: 50% !important;
+  color: #fff !important;
+}
+
+.flatpickr-day:hover {
+  background: var(--brand-bg) !important;
+  border-radius: 50% !important;
+}
+
+.flatpickr-months,
+.flatpickr-month {
+  background: transparent !important;
+  color: var(--ink) !important;
+}
+
+/* ── STRIP ALL REMAINING BORDERS ─────────────────────────── */
+.cart-page__summary [class*="border-top"]    { border-top: none !important; }
+.cart-page__summary [class*="border-bottom"] { border-bottom: none !important; }
+.cart-page__summary table { border-collapse: collapse !important; }

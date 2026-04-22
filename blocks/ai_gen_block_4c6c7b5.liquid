@@ -1,0 +1,681 @@
+{% doc %}
+  @prompt
+    Create a fully customizable announcement bar block with a blinking/flashing text effect. The block should:
+    
+    - Have a customizable background color (default: brown) and text color (default: white)
+    - Every 3 seconds, the colors invert — text becomes the background color and background becomes the text color (blinking effect using CSS keyframes or JavaScript)
+    - Customizable settings in the theme editor:
+      - Announcement text
+      - Background color picker
+      - Text color picker
+      - Blink interval in seconds (default 3)
+      - Font size selector
+      - Text alignment (left, center, right)
+      - Enable/disable blink toggle
+      - Optional CTA link URL and link text
+      - Padding top and bottom
+    - Smooth CSS keyframe animation for the color swap
+    - Premium and attractive look suitable for a luxury gifting brand
+    - Standalone section compatible with Online Store 2.0 themes, it should edge to edge amd the text style and ecverythuing adjusting option must be tghere and it must look attratuive and premium , not just given directly , it should cover the whole page by sides , it must also show the section width and fully cover the page 
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-announcement-bar-{{ ai_gen_id }} {
+    display: block;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    background-color: {{ block.settings.background_color }};
+    color: {{ block.settings.text_color }};
+    padding: {{ block.settings.padding_top }}px 0 {{ block.settings.padding_bottom }}px;
+    transition: background-color 0.5s ease, color 0.5s ease;
+    overflow: hidden;
+  }
+
+  {% if block.settings.enable_blink %}
+    .ai-announcement-bar-{{ ai_gen_id }}.ai-blink-active-{{ ai_gen_id }} {
+      background-color: {{ block.settings.text_color }};
+      color: {{ block.settings.background_color }};
+    }
+  {% endif %}
+
+  .ai-announcement-bar-inner-{{ ai_gen_id }} {
+    max-width: {% if block.settings.section_width == 'full' %}100%{% elsif block.settings.section_width == 'wide' %}1400px{% elsif block.settings.section_width == 'medium' %}1200px{% else %}1000px{% endif %};
+    margin: 0 auto;
+    padding: 0 {{ block.settings.horizontal_padding }}px;
+  }
+
+  .ai-announcement-bar-content-{{ ai_gen_id }} {
+    display: flex;
+    align-items: center;
+    justify-content: {{ block.settings.text_alignment }};
+    gap: {{ block.settings.content_gap }}px;
+    flex-wrap: wrap;
+  }
+
+  .ai-announcement-text-{{ ai_gen_id }} {
+    font-size: {{ block.settings.font_size }}px;
+    line-height: {{ block.settings.line_height }};
+    margin: 0;
+    font-weight: {{ block.settings.font_weight }};
+    letter-spacing: {{ block.settings.letter_spacing }}px;
+    text-transform: {{ block.settings.text_transform }};
+  }
+
+  .ai-announcement-cta-{{ ai_gen_id }} {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: {{ block.settings.cta_padding_vertical }}px {{ block.settings.cta_padding_horizontal }}px;
+    background-color: {{ block.settings.cta_background }};
+    color: {{ block.settings.cta_text_color }};
+    text-decoration: none;
+    border-radius: {{ block.settings.cta_border_radius }}px;
+    font-size: {{ block.settings.cta_font_size }}px;
+    font-weight: {{ block.settings.cta_font_weight }};
+    text-transform: {{ block.settings.cta_text_transform }};
+    letter-spacing: {{ block.settings.cta_letter_spacing }}px;
+    transition: all 0.3s ease;
+    border: {{ block.settings.cta_border_width }}px solid {{ block.settings.cta_border_color }};
+    white-space: nowrap;
+  }
+
+  .ai-announcement-cta-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.cta_hover_background }};
+    color: {{ block.settings.cta_hover_text_color }};
+    border-color: {{ block.settings.cta_hover_border_color }};
+    transform: translateY(-1px);
+  }
+
+  {% if block.settings.enable_blink %}
+    .ai-announcement-bar-{{ ai_gen_id }}.ai-blink-active-{{ ai_gen_id }} .ai-announcement-cta-{{ ai_gen_id }} {
+      background-color: {{ block.settings.background_color }};
+      color: {{ block.settings.text_color }};
+      border-color: {{ block.settings.background_color }};
+    }
+
+    .ai-announcement-bar-{{ ai_gen_id }}.ai-blink-active-{{ ai_gen_id }} .ai-announcement-cta-{{ ai_gen_id }}:hover {
+      opacity: 0.9;
+    }
+  {% endif %}
+
+  {% if block.settings.show_decorative_line %}
+    .ai-announcement-bar-{{ ai_gen_id }}::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: {{ block.settings.decorative_line_height }}px;
+      background: {{ block.settings.decorative_line_color }};
+    }
+  {% endif %}
+
+  {% if block.settings.show_bottom_line %}
+    .ai-announcement-bar-{{ ai_gen_id }}::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: {{ block.settings.bottom_line_height }}px;
+      background: {{ block.settings.bottom_line_color }};
+    }
+  {% endif %}
+
+  @media screen and (max-width: 749px) {
+    .ai-announcement-bar-inner-{{ ai_gen_id }} {
+      padding: 0 {{ block.settings.mobile_horizontal_padding }}px;
+    }
+
+    .ai-announcement-bar-content-{{ ai_gen_id }} {
+      justify-content: center;
+      text-align: center;
+      gap: {{ block.settings.content_gap | times: 0.7 }}px;
+    }
+
+    .ai-announcement-text-{{ ai_gen_id }} {
+      font-size: {{ block.settings.mobile_font_size }}px;
+    }
+
+    .ai-announcement-cta-{{ ai_gen_id }} {
+      font-size: {{ block.settings.mobile_cta_font_size }}px;
+      padding: {{ block.settings.cta_padding_vertical | times: 0.8 }}px {{ block.settings.cta_padding_horizontal | times: 0.8 }}px;
+    }
+  }
+{% endstyle %}
+
+<announcement-bar-{{ ai_gen_id }}
+  class="ai-announcement-bar-{{ ai_gen_id }}"
+  data-blink-enabled="{{ block.settings.enable_blink }}"
+  data-blink-interval="{{ block.settings.blink_interval }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-announcement-bar-inner-{{ ai_gen_id }}">
+    <div class="ai-announcement-bar-content-{{ ai_gen_id }}">
+      {% if block.settings.announcement_text != blank %}
+        <p class="ai-announcement-text-{{ ai_gen_id }}">
+          {{ block.settings.announcement_text }}
+        </p>
+      {% endif %}
+
+      {% if block.settings.cta_link != blank and block.settings.cta_text != blank %}
+        <a
+          href="{{ block.settings.cta_link }}"
+          class="ai-announcement-cta-{{ ai_gen_id }}"
+        >
+          {{ block.settings.cta_text }}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</announcement-bar-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class AnnouncementBar{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.blinkInterval = null;
+      }
+
+      connectedCallback() {
+        const blinkEnabled = this.dataset.blinkEnabled === 'true';
+        const blinkIntervalSeconds = parseFloat(this.dataset.blinkInterval) || 3;
+
+        if (blinkEnabled) {
+          this.startBlinking(blinkIntervalSeconds);
+        }
+      }
+
+      startBlinking(intervalSeconds) {
+        const intervalMs = intervalSeconds * 1000;
+
+        this.blinkInterval = setInterval(() => {
+          this.classList.add('ai-blink-active-{{ ai_gen_id }}');
+
+          setTimeout(() => {
+            this.classList.remove('ai-blink-active-{{ ai_gen_id }}');
+          }, intervalMs / 2);
+        }, intervalMs);
+      }
+
+      disconnectedCallback() {
+        if (this.blinkInterval) {
+          clearInterval(this.blinkInterval);
+        }
+      }
+    }
+
+    customElements.define('announcement-bar-{{ ai_gen_id }}', AnnouncementBar{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Announcement bar",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "textarea",
+      "id": "announcement_text",
+      "label": "Announcement text",
+      "default": "Free shipping on orders over ₹2,000 | Shop premium gift hampers"
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "CTA text"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA link"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Content width",
+      "options": [
+        {
+          "value": "full",
+          "label": "Full width"
+        },
+        {
+          "value": "wide",
+          "label": "Wide"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "narrow",
+          "label": "Narrow"
+        }
+      ],
+      "default": "full",
+      "info": "Controls the maximum width of content inside the bar"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "flex-start",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "flex-end",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#714924"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Text style"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font size",
+      "min": 10,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "mobile_font_size",
+      "label": "Mobile font size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "label": "Font weight",
+      "options": [
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Normal"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semi bold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ],
+      "default": "500"
+    },
+    {
+      "type": "range",
+      "id": "line_height",
+      "label": "Line height",
+      "min": 1,
+      "max": 2,
+      "step": 0.1,
+      "default": 1.5
+    },
+    {
+      "type": "range",
+      "id": "letter_spacing",
+      "label": "Letter spacing",
+      "min": 0,
+      "max": 3,
+      "step": 0.1,
+      "unit": "px",
+      "default": 0.5
+    },
+    {
+      "type": "select",
+      "id": "text_transform",
+      "label": "Text case",
+      "options": [
+        {
+          "value": "none",
+          "label": "Default"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        },
+        {
+          "value": "capitalize",
+          "label": "Capitalize"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "header",
+      "content": "CTA button style"
+    },
+    {
+      "type": "color",
+      "id": "cta_background",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "cta_text_color",
+      "label": "Text",
+      "default": "#714924"
+    },
+    {
+      "type": "color",
+      "id": "cta_border_color",
+      "label": "Border",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "cta_hover_background",
+      "label": "Hover background",
+      "default": "#f9f1e3"
+    },
+    {
+      "type": "color",
+      "id": "cta_hover_text_color",
+      "label": "Hover text",
+      "default": "#714924"
+    },
+    {
+      "type": "color",
+      "id": "cta_hover_border_color",
+      "label": "Hover border",
+      "default": "#f9f1e3"
+    },
+    {
+      "type": "range",
+      "id": "cta_font_size",
+      "label": "Font size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "mobile_cta_font_size",
+      "label": "Mobile font size",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "select",
+      "id": "cta_font_weight",
+      "label": "Font weight",
+      "options": [
+        {
+          "value": "400",
+          "label": "Normal"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semi bold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ],
+      "default": "600"
+    },
+    {
+      "type": "range",
+      "id": "cta_letter_spacing",
+      "label": "Letter spacing",
+      "min": 0,
+      "max": 2,
+      "step": 0.1,
+      "unit": "px",
+      "default": 0.5
+    },
+    {
+      "type": "select",
+      "id": "cta_text_transform",
+      "label": "Text case",
+      "options": [
+        {
+          "value": "none",
+          "label": "Default"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        },
+        {
+          "value": "capitalize",
+          "label": "Capitalize"
+        }
+      ],
+      "default": "uppercase"
+    },
+    {
+      "type": "range",
+      "id": "cta_padding_vertical",
+      "label": "Vertical padding",
+      "min": 4,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "cta_padding_horizontal",
+      "label": "Horizontal padding",
+      "min": 8,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "cta_border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "cta_border_width",
+      "label": "Border width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "horizontal_padding",
+      "label": "Horizontal padding",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "mobile_horizontal_padding",
+      "label": "Mobile horizontal padding",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "content_gap",
+      "label": "Content gap",
+      "min": 8,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Decorative elements"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_decorative_line",
+      "label": "Show top line",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "decorative_line_height",
+      "label": "Top line height",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "unit": "px",
+      "default": 2
+    },
+    {
+      "type": "color",
+      "id": "decorative_line_color",
+      "label": "Top line color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_bottom_line",
+      "label": "Show bottom line",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "bottom_line_height",
+      "label": "Bottom line height",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "unit": "px",
+      "default": 2
+    },
+    {
+      "type": "color",
+      "id": "bottom_line_color",
+      "label": "Bottom line color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Blink effect"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_blink",
+      "label": "Enable blink",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "blink_interval",
+      "label": "Blink interval",
+      "min": 1,
+      "max": 10,
+      "step": 0.5,
+      "unit": "s",
+      "default": 3
+    }
+  ],
+  "presets": [
+    {
+      "name": "Announcement bar"
+    }
+  ]
+}
+{% endschema %}

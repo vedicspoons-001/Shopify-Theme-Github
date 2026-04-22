@@ -1,0 +1,612 @@
+{% doc %}
+  @prompt
+    On mobile, the horizontal navigation bar has a horizontal scroll/slider that cuts off menu items (e.g., "Sweets" is partially visible). Fix this so that either: (1) all nav items wrap to a second line cleanly, OR (2) show the first few items and add a "See more" button/link on the right — but NO horizontal scrolling/slider. The nav bar has a warm beige background with dark maroon text. Keep the premium look. The fix should be mobile-only and not affect desktop layout., The button of see more must appear properly and there should be something to show them that they are on this page like an underline under the selected or on the page they are like if they are on home there is a line under it and if they are on nutriprash window then there is a line under it ], the more button must not appear half , why its appearing half it must view in full bubble, okay now one more thing that make veerything properly middle alligned and make sure this is for mobile only not desktyop okay , dosktop must not be affected at all , the text allignment means the whiole internall block is shifted or alligned to left which in case musr be in the middle , i wanted all in the middle 
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-mobile-nav-fix-{{ ai_gen_id }} {
+    display: none;
+    width: 100%;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-mobile-nav-fix-{{ ai_gen_id }} {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: {{ block.settings.background_color }};
+      padding: {{ block.settings.vertical_padding }}px {{ block.settings.horizontal_padding }}px;
+      overflow: visible;
+      width: 100%;
+    }
+
+    .ai-mobile-nav-container-{{ ai_gen_id }} {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .ai-mobile-nav-list-{{ ai_gen_id }} {
+      display: flex;
+      {% if block.settings.layout_style == 'wrap' %}
+        flex-wrap: wrap;
+        justify-content: center;
+      {% else %}
+        flex-wrap: nowrap;
+        justify-content: center;
+      {% endif %}
+      align-items: center;
+      gap: {{ block.settings.item_spacing }}px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+    }
+
+    .ai-mobile-nav-item-{{ ai_gen_id }} {
+      flex-shrink: 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    {% if block.settings.layout_style == 'see_more' %}
+      .ai-mobile-nav-item-{{ ai_gen_id }}.ai-hidden-{{ ai_gen_id }} {
+        display: none;
+      }
+    {% endif %}
+
+    .ai-mobile-nav-link-{{ ai_gen_id }} {
+      display: inline-block;
+      color: {{ block.settings.text_color }};
+      text-decoration: none;
+      font-size: {{ block.settings.font_size }}px;
+      font-weight: {{ block.settings.font_weight }};
+      padding: {{ block.settings.link_padding_vertical }}px {{ block.settings.link_padding_horizontal }}px;
+      border-radius: {{ block.settings.link_border_radius }}px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      background-color: {{ block.settings.link_background }};
+      position: relative;
+      text-align: center;
+    }
+
+    .ai-mobile-nav-link-{{ ai_gen_id }}::after {
+      content: '';
+      position: absolute;
+      bottom: {{ block.settings.underline_offset }}px;
+      left: {{ block.settings.link_padding_horizontal }}px;
+      right: {{ block.settings.link_padding_horizontal }}px;
+      height: {{ block.settings.underline_thickness }}px;
+      background-color: {{ block.settings.active_underline_color }};
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .ai-mobile-nav-link-{{ ai_gen_id }}.ai-active-{{ ai_gen_id }}::after {
+      opacity: 1;
+    }
+
+    .ai-mobile-nav-link-{{ ai_gen_id }}:hover,
+    .ai-mobile-nav-link-{{ ai_gen_id }}:focus {
+      color: {{ block.settings.text_hover_color }};
+      background-color: {{ block.settings.link_hover_background }};
+    }
+
+    {% if block.settings.layout_style == 'see_more' %}
+      .ai-mobile-nav-more-{{ ai_gen_id }} {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .ai-mobile-nav-more-button-{{ ai_gen_id }} {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        color: {{ block.settings.text_color }};
+        background-color: {{ block.settings.more_button_background }};
+        border: {{ block.settings.more_button_border_width }}px solid {{ block.settings.more_button_border_color }};
+        border-radius: {{ block.settings.link_border_radius }}px;
+        padding: {{ block.settings.link_padding_vertical }}px {{ block.settings.link_padding_horizontal }}px;
+        font-size: {{ block.settings.font_size }}px;
+        font-weight: {{ block.settings.font_weight }};
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .ai-mobile-nav-more-button-{{ ai_gen_id }}:hover,
+      .ai-mobile-nav-more-button-{{ ai_gen_id }}:focus {
+        color: {{ block.settings.text_hover_color }};
+        background-color: {{ block.settings.link_hover_background }};
+        border-color: {{ block.settings.more_button_border_hover_color }};
+      }
+
+      .ai-mobile-nav-more-icon-{{ ai_gen_id }} {
+        width: 12px;
+        height: 12px;
+        transition: transform 0.2s ease;
+        flex-shrink: 0;
+      }
+
+      .ai-mobile-nav-more-button-{{ ai_gen_id }}.ai-expanded-{{ ai_gen_id }} .ai-mobile-nav-more-icon-{{ ai_gen_id }} {
+        transform: rotate(180deg);
+      }
+
+      .ai-mobile-nav-dropdown-{{ ai_gen_id }} {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%) translateY(-10px);
+        background-color: {{ block.settings.dropdown_background }};
+        border-radius: {{ block.settings.link_border_radius }}px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: {{ block.settings.dropdown_padding }}px;
+        min-width: 180px;
+        max-width: 280px;
+        z-index: 100;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .ai-mobile-nav-dropdown-{{ ai_gen_id }}.ai-active-{{ ai_gen_id }} {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .ai-mobile-nav-dropdown-list-{{ ai_gen_id }} {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .ai-mobile-nav-dropdown-link-{{ ai_gen_id }} {
+        display: block;
+        color: {{ block.settings.dropdown_text_color }};
+        text-decoration: none;
+        font-size: {{ block.settings.font_size }}px;
+        padding: {{ block.settings.link_padding_vertical }}px {{ block.settings.link_padding_horizontal }}px;
+        border-radius: {{ block.settings.link_border_radius }}px;
+        transition: all 0.2s ease;
+        position: relative;
+        text-align: center;
+      }
+
+      .ai-mobile-nav-dropdown-link-{{ ai_gen_id }}::after {
+        content: '';
+        position: absolute;
+        bottom: {{ block.settings.underline_offset }}px;
+        left: {{ block.settings.link_padding_horizontal }}px;
+        right: {{ block.settings.link_padding_horizontal }}px;
+        height: {{ block.settings.underline_thickness }}px;
+        background-color: {{ block.settings.active_underline_color }};
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+
+      .ai-mobile-nav-dropdown-link-{{ ai_gen_id }}.ai-active-{{ ai_gen_id }}::after {
+        opacity: 1;
+      }
+
+      .ai-mobile-nav-dropdown-link-{{ ai_gen_id }}:hover,
+      .ai-mobile-nav-dropdown-link-{{ ai_gen_id }}:focus {
+        background-color: {{ block.settings.dropdown_hover_background }};
+        color: {{ block.settings.dropdown_text_hover_color }};
+      }
+    {% endif %}
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-mobile-nav-fix-{{ ai_gen_id }} {
+      display: none !important;
+    }
+  }
+{% endstyle %}
+
+<mobile-nav-{{ ai_gen_id }} class="ai-mobile-nav-fix-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-mobile-nav-container-{{ ai_gen_id }}">
+    <ul class="ai-mobile-nav-list-{{ ai_gen_id }}">
+      {% for link in linklists[block.settings.menu].links %}
+        <li class="ai-mobile-nav-item-{{ ai_gen_id }} {% if block.settings.layout_style == 'see_more' and forloop.index > block.settings.visible_items %}ai-hidden-{{ ai_gen_id }}{% endif %}" data-nav-index="{{ forloop.index }}">
+          <a 
+            href="{{ link.url }}" 
+            class="ai-mobile-nav-link-{{ ai_gen_id }} {% if link.active or link.child_active %}ai-active-{{ ai_gen_id }}{% endif %}"
+          >
+            {{ link.title }}
+          </a>
+        </li>
+      {% endfor %}
+
+      {% if block.settings.layout_style == 'see_more' and linklists[block.settings.menu].links.size > block.settings.visible_items %}
+        <li class="ai-mobile-nav-more-{{ ai_gen_id }}">
+          <button 
+            class="ai-mobile-nav-more-button-{{ ai_gen_id }}" 
+            aria-expanded="false"
+            aria-label="Show more menu items"
+          >
+            {{ block.settings.more_button_text }}
+            <svg class="ai-mobile-nav-more-icon-{{ ai_gen_id }}" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="2,4 6,8 10,4"></polyline>
+            </svg>
+          </button>
+          <div class="ai-mobile-nav-dropdown-{{ ai_gen_id }}">
+            <ul class="ai-mobile-nav-dropdown-list-{{ ai_gen_id }}">
+              {% for link in linklists[block.settings.menu].links %}
+                {% if forloop.index > block.settings.visible_items %}
+                  <li>
+                    <a 
+                      href="{{ link.url }}" 
+                      class="ai-mobile-nav-dropdown-link-{{ ai_gen_id }} {% if link.active or link.child_active %}ai-active-{{ ai_gen_id }}{% endif %}"
+                    >
+                      {{ link.title }}
+                    </a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+          </div>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
+</mobile-nav-{{ ai_gen_id }}>
+
+{% if block.settings.layout_style == 'see_more' %}
+  <script>
+    (function() {
+      class MobileNav{{ ai_gen_id }} extends HTMLElement {
+        constructor() {
+          super();
+          this.moreButton = this.querySelector('.ai-mobile-nav-more-button-{{ ai_gen_id }}');
+          this.dropdown = this.querySelector('.ai-mobile-nav-dropdown-{{ ai_gen_id }}');
+        }
+
+        connectedCallback() {
+          if (this.moreButton && this.dropdown) {
+            this.moreButton.addEventListener('click', this.toggleDropdown.bind(this));
+            document.addEventListener('click', this.handleOutsideClick.bind(this));
+          }
+        }
+
+        toggleDropdown(event) {
+          event.stopPropagation();
+          const isExpanded = this.moreButton.classList.contains('ai-expanded-{{ ai_gen_id }}');
+          
+          if (isExpanded) {
+            this.closeDropdown();
+          } else {
+            this.openDropdown();
+          }
+        }
+
+        openDropdown() {
+          this.moreButton.classList.add('ai-expanded-{{ ai_gen_id }}');
+          this.dropdown.classList.add('ai-active-{{ ai_gen_id }}');
+          this.moreButton.setAttribute('aria-expanded', 'true');
+        }
+
+        closeDropdown() {
+          this.moreButton.classList.remove('ai-expanded-{{ ai_gen_id }}');
+          this.dropdown.classList.remove('ai-active-{{ ai_gen_id }}');
+          this.moreButton.setAttribute('aria-expanded', 'false');
+        }
+
+        handleOutsideClick(event) {
+          if (!this.contains(event.target)) {
+            this.closeDropdown();
+          }
+        }
+
+        disconnectedCallback() {
+          if (this.moreButton) {
+            this.moreButton.removeEventListener('click', this.toggleDropdown.bind(this));
+          }
+          document.removeEventListener('click', this.handleOutsideClick.bind(this));
+        }
+      }
+
+      customElements.define('mobile-nav-{{ ai_gen_id }}', MobileNav{{ ai_gen_id }});
+    })();
+  </script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Mobile nav fix",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Menu"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "main-menu"
+    },
+    {
+      "type": "radio",
+      "id": "layout_style",
+      "label": "Layout style",
+      "options": [
+        {
+          "value": "wrap",
+          "label": "Wrap to multiple lines"
+        },
+        {
+          "value": "see_more",
+          "label": "Show 'See more' button"
+        }
+      ],
+      "default": "see_more"
+    },
+    {
+      "type": "range",
+      "id": "visible_items",
+      "label": "Visible items before 'See more'",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 3,
+      "info": "Only applies to 'See more' layout"
+    },
+    {
+      "type": "text",
+      "id": "more_button_text",
+      "label": "More button text",
+      "default": "More"
+    },
+    {
+      "type": "header",
+      "content": "Active page indicator"
+    },
+    {
+      "type": "color",
+      "id": "active_underline_color",
+      "label": "Underline color",
+      "default": "#5e1111"
+    },
+    {
+      "type": "range",
+      "id": "underline_thickness",
+      "label": "Underline thickness",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "underline_offset",
+      "label": "Underline offset",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "unit": "px",
+      "default": 2,
+      "info": "Distance from bottom of link"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#f9f1e3"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#5e1111"
+    },
+    {
+      "type": "color",
+      "id": "text_hover_color",
+      "label": "Text hover",
+      "default": "#5e1111"
+    },
+    {
+      "type": "color",
+      "id": "link_background",
+      "label": "Link background",
+      "default": "rgba(0,0,0,0)"
+    },
+    {
+      "type": "color",
+      "id": "link_hover_background",
+      "label": "Link hover background",
+      "default": "rgba(94,17,17,0.1)"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "label": "Font weight",
+      "options": [
+        {
+          "value": "400",
+          "label": "Normal"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ],
+      "default": "500"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "vertical_padding",
+      "label": "Vertical padding",
+      "min": 8,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "horizontal_padding",
+      "label": "Horizontal padding",
+      "min": 8,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "item_spacing",
+      "label": "Item spacing",
+      "min": 4,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "link_padding_vertical",
+      "label": "Link vertical padding",
+      "min": 4,
+      "max": 16,
+      "step": 2,
+      "unit": "px",
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "link_padding_horizontal",
+      "label": "Link horizontal padding",
+      "min": 8,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "link_border_radius",
+      "label": "Link border radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "More button style"
+    },
+    {
+      "type": "color",
+      "id": "more_button_background",
+      "label": "Background",
+      "default": "rgba(94,17,17,0.1)"
+    },
+    {
+      "type": "color",
+      "id": "more_button_border_color",
+      "label": "Border",
+      "default": "rgba(94,17,17,0.2)"
+    },
+    {
+      "type": "color",
+      "id": "more_button_border_hover_color",
+      "label": "Border hover",
+      "default": "rgba(94,17,17,0.3)"
+    },
+    {
+      "type": "range",
+      "id": "more_button_border_width",
+      "label": "Border width",
+      "min": 0,
+      "max": 3,
+      "step": 1,
+      "unit": "px",
+      "default": 1
+    },
+    {
+      "type": "header",
+      "content": "Dropdown style"
+    },
+    {
+      "type": "color",
+      "id": "dropdown_background",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "dropdown_text_color",
+      "label": "Text",
+      "default": "#5e1111"
+    },
+    {
+      "type": "color",
+      "id": "dropdown_text_hover_color",
+      "label": "Text hover",
+      "default": "#5e1111"
+    },
+    {
+      "type": "color",
+      "id": "dropdown_hover_background",
+      "label": "Hover background",
+      "default": "rgba(94,17,17,0.1)"
+    },
+    {
+      "type": "range",
+      "id": "dropdown_padding",
+      "label": "Padding",
+      "min": 8,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    }
+  ],
+  "presets": [
+    {
+      "name": "Mobile nav fix"
+    }
+  ]
+}
+{% endschema %}

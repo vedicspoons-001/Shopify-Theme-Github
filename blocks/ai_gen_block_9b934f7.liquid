@@ -1,0 +1,181 @@
+{% doc %}
+  @prompt
+    creat a clickable text link saying about us
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-text-link-{{ ai_gen_id }} {
+    display: inline-block;
+    font-size: {{ block.settings.font_size }}px;
+    font-weight: {{ block.settings.font_weight }};
+    color: {{ block.settings.text_color }};
+    text-decoration: {{ block.settings.text_decoration }};
+    padding: {{ block.settings.padding }}px;
+    margin: {{ block.settings.margin }}px;
+    text-transform: {{ block.settings.text_transform }};
+    transition: color 0.3s ease;
+  }
+
+  .ai-text-link-{{ ai_gen_id }}:hover {
+    color: {{ block.settings.hover_color }};
+  }
+
+  .ai-text-link-wrapper-{{ ai_gen_id }} {
+    text-align: {{ block.settings.alignment }};
+  }
+{% endstyle %}
+
+<div class="ai-text-link-wrapper-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <a href="{{ block.settings.link }}" class="ai-text-link-{{ ai_gen_id }}">
+    {{ block.settings.text }}
+  </a>
+</div>
+
+{% schema %}
+{
+  "name": "Text Link",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Link text",
+      "default": "About Us"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link URL"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 12,
+      "max": 36,
+      "step": 1,
+      "unit": "px",
+      "label": "Font size",
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "label": "Font weight",
+      "options": [
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "bold",
+          "label": "Bold"
+        }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "select",
+      "id": "text_decoration",
+      "label": "Text decoration",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "underline",
+          "label": "Underline"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "select",
+      "id": "text_transform",
+      "label": "Text transform",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        },
+        {
+          "value": "lowercase",
+          "label": "Lowercase"
+        },
+        {
+          "value": "capitalize",
+          "label": "Capitalize"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "hover_color",
+      "label": "Hover color",
+      "default": "#000f9f"
+    },
+    {
+      "type": "range",
+      "id": "padding",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Padding",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "margin",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Margin",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Text Link"
+    }
+  ]
+}
+{% endschema %}

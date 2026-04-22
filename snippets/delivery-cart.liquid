@@ -1,0 +1,79 @@
+
+
+
+
+
+
+{% comment %}
+  Cart Page Delivery Widget
+  Usage: {% render 'delivery-cart', cart: cart %}
+{% endcomment %}
+
+{% capture lines_json %}[{% for item in cart.items %}{"title":{{ item.product.title | json }},"prepDays":{{ item.product.metafields.custom.delivery_days | default: 2 }}}{% unless forloop.last %},{% endunless %}{% endfor %}]{% endcapture %}
+
+<div
+  id="vs-cart-delivery"
+  class="vs-cart-delivery"
+  data-lines="{{ lines_json | escape }}"
+  data-cart-total="{{ cart.total_price | divided_by: 100.0 }}"
+>
+  <h3>🚚 Delivery Options</h3>
+
+  <div class="vs-pincode-row">
+    <input type="text" class="vs-cart-pincode-input" placeholder="Enter Pincode to check delivery" maxlength="10" inputmode="numeric" />
+    <button class="vs-cart-pincode-btn" type="button">Check</button>
+  </div>
+  <div class="vs-cart-pincode-msg vs-pincode-msg"></div>
+
+  <div class="vs-cart-countdown vs-countdown">
+    ⚡ Order in <span class="vs-cart-countdown-time">--:--:--</span> to get Express delivery tomorrow!
+  </div>
+
+  <div class="vs-shipping-options">
+
+    <div class="vs-shipping-option vs-normal">
+      <span class="vs-option-icon">🚚</span>
+      <div class="vs-option-body">
+        <div class="vs-option-label">Standard Delivery</div>
+        <div class="vs-option-date">Estimated by <strong class="vs-cart-normal-date">—</strong></div>
+      </div>
+      <div class="vs-option-price vs-cart-normal-price">—</div>
+    </div>
+
+    <div class="vs-shipping-option vs-express" style="display:none;">
+      <span class="vs-option-icon">⚡</span>
+      <div class="vs-option-body>
+        <div class=vs-option-label">Express Delivery</div>
+        <div class="vs-option-date">Get it by <strong class="vs-cart-express-date">—</strong></div>
+      </div>
+      <div class="vs-option-price vs-paid vs-cart-express-price">—</div>
+    </div>
+
+    <div class="vs-shipping-option vs-pickup" style="display:none;">
+      <span class="vs-option-icon">🏪</span>
+      <div class="vs-option-body>
+        <div class=vs-option-label">Store Pickup</div>
+        <div class="vs-option-date">Ready by <strong class="vs-cart-pickup-date">—</strong></div>
+      </div>
+      <div class="vs-option-price">FREE</div>
+    </div>
+
+    <div class="vs-shipping-option vs-intl" style="display:none;">
+      <span class="vs-option-icon">✈️</span>
+      <div class="vs-option-body">
+        <div class="vs-option-label">International Shipping</div>
+        <div class="vs-option-date">Estimated by <strong class="vs-cart-intl-date">—</strong></div>
+      </div>
+      <div class="vs-option-price vs-paid vs-cart-intl-price">—</div>
+    </div>
+
+  </div>
+
+  <div class="vs-date-picker-row">
+    <label class="vs-date-picker-label">📅 Choose a preferred delivery date (optional)</label>
+    <input type="date" class="vs-date-picker" />
+  </div>
+</div>
+
+{{ 'delivery.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'delivery.js' | asset_url }}" defer></script>

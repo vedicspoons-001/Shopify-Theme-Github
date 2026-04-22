@@ -1,0 +1,152 @@
+
+
+.vs-pincode-msg.vs-error {
+  color: #c0392b;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+
+
+
+/* ===== VEDIC PREMIUM DELIVERY UI ===== */
+
+.vs-delivery-widget,
+.vs-cart-delivery {
+  margin: 20px 0;
+  padding: 20px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.06);
+  color: #3a2e1e;
+}
+
+/* heading */
+.vs-delivery-widget h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* ===== PINCODE ===== */
+
+.vs-pincode-row {
+  display: flex;
+  gap: 8px;
+}
+
+.vs-pincode-input {
+  flex: 1;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.08);
+  font-size: 14px;
+}
+
+.vs-pincode-input:focus {
+  border-color: #6b4f3b;
+  box-shadow: 0 0 0 2px rgba(107,79,59,0.1);
+}
+
+.vs-pincode-btn {
+  padding: 0 16px;
+  border-radius: 10px;
+  background: #6b4f3b;
+  color: #fff;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* message */
+.vs-pincode-msg {
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.vs-success { color: #2e7d32; }
+.vs-error { color: #c62828; }
+
+/* ===== COUNTDOWN ===== */
+
+.vs-countdown {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #6b4f3b;
+  background: #f7f1ea;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.vs-countdown-time {
+  font-weight: 700;
+}
+
+/* ===== OPTIONS ===== */
+
+.vs-shipping-options {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* card */
+.vs-shipping-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #faf8f5;
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+/* hover */
+.vs-shipping-option:hover {
+  transform: translateY(-2px);
+}
+
+/* icon */
+.vs-option-icon {
+  font-size: 18px;
+}
+
+/* text */
+.vs-option-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.vs-option-date {
+  font-size: 12px;
+  color: #7a6256;
+}
+
+/* price */
+.vs-option-price {
+  margin-left: auto;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* ===== EXPRESS HIGHLIGHT (ONLY ONE SPECIAL) ===== */
+
+.vs-express {
+  background: #fff5e8;
+  border-color: #ecd3b0;
+}
+
+/* ===== DATE PICKER ===== */
+
+.vs-date-picker-row {
+  margin-top: 16px;
+}
+
+.vs-date-picker {
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.08);
+  font-size: 14px;
+}

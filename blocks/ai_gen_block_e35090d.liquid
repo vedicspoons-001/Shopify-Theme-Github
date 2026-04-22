@@ -1,0 +1,635 @@
+{% assign bg = block.settings.bg_color %}
+{% assign accent = block.settings.accent_color %}
+{% assign txt = block.settings.text_color %}
+{% assign card_bg = block.settings.card_bg_color %}
+{% assign exp_bg = block.settings.express_card_bg %}
+
+<div id="vs-delivery-widget" class="vs-dw"
+  data-cutoff-hour="{{ block.settings.cutoff_hour }}"
+  data-date-format="{{ block.settings.date_format }}"
+  data-enable-geolocation="{{ block.settings.enable_geolocation }}"
+  data-show-express="{{ block.settings.show_express }}"
+  data-show-note="{{ block.settings.show_note }}"
+  data-mumbai-only="{{ product.metafields.custom.mumbai_only | default: false }}"
+  data-mumbai-standard-days="{{ block.settings.mumbai_standard_days }}"
+  data-maha-standard-min="{{ block.settings.maha_standard_min }}"
+  data-maha-standard-max="{{ block.settings.maha_standard_max }}"
+  data-maha-express-days="{{ block.settings.maha_express_days }}"
+  data-neighbour-standard-min="{{ block.settings.neighbour_standard_min }}"
+  data-neighbour-standard-max="{{ block.settings.neighbour_standard_max }}"
+  data-neighbour-express-days="{{ block.settings.neighbour_express_days }}"
+  data-northeast-standard-min="{{ block.settings.northeast_standard_min }}"
+  data-northeast-standard-max="{{ block.settings.northeast_standard_max }}"
+  data-northeast-express-min="{{ block.settings.northeast_express_min }}"
+  data-northeast-express-max="{{ block.settings.northeast_express_max }}"
+  data-india-standard-min="{{ block.settings.india_standard_min }}"
+  data-india-standard-max="{{ block.settings.india_standard_max }}"
+  data-india-metro-express-days="{{ block.settings.india_metro_express_days }}"
+  data-india-nonmetro-express-days="{{ block.settings.india_nonmetro_express_days }}"
+  style="
+    background: {{ bg }};
+    color: {{ txt }};
+    --dw-accent: {{ accent }};
+    --dw-card-bg: {{ card_bg }};
+    --dw-express-bg: {{ exp_bg }};
+    --dw-txt: {{ txt }};
+  "
+>
+  <p class="vs-dw-title">{{ block.settings.widget_title }}</p>
+
+  <div class="vs-dw-row">
+    <input
+      type="text"
+      class="vs-pincode-input"
+      placeholder="{{ block.settings.placeholder_text }}"
+      maxlength="6"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      autocomplete="postal-code"
+    />
+    <button class="vs-pincode-btn" type="button">{{ block.settings.button_text }}</button>
+  </div>
+
+
+  <div class="vs-pincode-msg"></div>
+
+  <div class="vs-dw-cards">
+    <div class="vs-dw-card vs-normal" style="display:none;">
+      <span class="vs-dw-icon">🚚</span>
+      <div>
+        <div class="vs-dw-label">{{ block.settings.standard_label }}</div>
+        <div class="vs-dw-date">Get it by <strong class="vs-normal-date">—</strong></div>
+      </div>
+    </div>
+    {% if block.settings.show_express %}
+    <div class="vs-dw-card vs-express" style="display:none;">
+      <span class="vs-dw-icon">⚡</span>
+      <div>
+        <div class="vs-dw-label">{{ block.settings.express_label }}</div>
+        <div class="vs-dw-date">Get it by <strong class="vs-express-date">—</strong></div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if block.settings.show_note %}
+  <div class="vs-dw-note" style="display:none;"></div>
+  {% endif %}
+</div>
+
+<style>
+  .vs-dw {
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .vs-dw-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    color: var(--dw-txt, #2c2c2c);
+  }
+  .vs-dw-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .vs-pincode-input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1.5px solid #e0d5c5;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    background: #fff;
+    color: var(--dw-txt, #2c2c2c);
+    box-sizing: border-box;
+  }
+  .vs-pincode-input:focus { border-color: var(--dw-accent, #8B6914); }
+  .vs-pincode-btn {
+    padding: 10px 16px;
+    background: var(--dw-accent, #8B6914);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+  }
+  .vs-pincode-btn:hover { opacity: 0.88; }
+  .vs-pincode-msg {
+    font-size: 12px;
+    font-weight: 600;
+    min-height: 18px;
+    margin-bottom: 8px;
+  }
+  .vs-pincode-msg.vs-success { color: #27ae60; }
+  .vs-pincode-msg.vs-error   { color: #c0392b; }
+  .vs-dw-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .vs-dw-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid #e8dfc8;
+    background: var(--dw-card-bg, #fff);
+    box-sizing: border-box;
+    width: 100%;
+    transition: box-shadow 0.2s;
+  }
+  .vs-dw-card:hover { box-shadow: 0 2px 8px rgba(139,105,20,0.1); }
+  .vs-dw-card.vs-express {
+    background: var(--dw-express-bg, #fdf3e0);
+    border-color: var(--dw-accent, #8B6914);
+  }
+  .vs-dw-icon { font-size: 20px; flex-shrink: 0; }
+  .vs-dw-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dw-txt, #2c2c2c);
+  }
+  .vs-dw-date {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+  }
+  .vs-dw-date strong { color: var(--dw-txt, #2c2c2c); }
+  .vs-dw-note {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--dw-accent, #8B6914);
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: rgba(139,105,20,0.06);
+    border-radius: 6px;
+  }
+  @media (max-width: 480px) {
+    .vs-dw { padding: 12px; }
+    .vs-pincode-btn { padding: 10px 12px; font-size: 13px; }
+  }
+</style>
+
+<script>
+(function(){
+  'use strict';
+
+  const TZ = 'Asia/Kolkata';
+  const NEIGHBOURING = ['gujarat','madhya pradesh','chhattisgarh','telangana','karnataka','goa'];
+  const NORTHEAST    = ['jammu and kashmir','jammu & kashmir','ladakh','arunachal pradesh','assam','manipur','meghalaya','mizoram','nagaland','sikkim','tripura'];
+  const METRO        = ['delhi','new delhi','bengaluru','bangalore','hyderabad','chennai','kolkata','ahmedabad','surat','jaipur','lucknow','kanpur','nagpur','indore','bhopal','visakhapatnam','patna','vadodara','ludhiana','coimbatore','kochi','thiruvananthapuram','bhubaneswar','guwahati','chandigarh','amritsar','agra','varanasi','rajkot','meerut','faridabad','ghaziabad','noida','gurugram','gurgaon','raipur','jodhpur','madurai','ranchi','jabalpur','gwalior','vijayawada','mysuru','mysore','hubli','tiruchirappalli','bareilly','aligarh','moradabad','aurangabad','nashik'];
+
+  function nowIST(){ return new Date(new Date().toLocaleString('en-US',{timeZone:TZ})); }
+
+  function cfg(){
+    const w = document.getElementById('vs-delivery-widget');
+    const d = w ? w.dataset : {};
+    return {
+      ch:   parseInt(d.cutoffHour||12),
+      fmt:  d.dateFormat||'short',
+      geo:  d.enableGeolocation!=='false',
+      showNote: d.showNote!=='false',
+      ms:   parseInt(d.mumbaiStandardDays||4),
+      maSn: parseInt(d.mahaStandardMin||4),
+      maSx: parseInt(d.mahaStandardMax||5),
+      maE:  parseInt(d.mahaExpressDays||1),
+      nbSn: parseInt(d.neighbourStandardMin||4),
+      nbSx: parseInt(d.neighbourStandardMax||5),
+      nbE:  parseInt(d.neighbourExpressDays||2),
+      neSn: parseInt(d.northeastStandardMin||8),
+      neSx: parseInt(d.northeastStandardMax||10),
+      neEn: parseInt(d.northeastExpressMin||2),
+      neEx: parseInt(d.northeastExpressMax||4),
+      inSn: parseInt(d.indiaStandardMin||6),
+      inSx: parseInt(d.indiaStandardMax||8),
+      inME: parseInt(d.indiaMetroExpressDays||2),
+      inNE: parseInt(d.indiaNonmetroExpressDays||4),
+    };
+  }
+
+  function isPast(){ return nowIST().getHours() >= cfg().ch; }
+
+  function addDays(date,n){
+    let d=new Date(date); d.setDate(d.getDate()+n); return d;
+  }
+
+  function fmt(d){
+    const f = cfg().fmt;
+    if(f==='long')    return d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    if(f==='numeric') return d.toLocaleDateString('en-IN');
+    if(f==='compact') return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+    return d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  }
+
+  function titleCase(s){
+    return s.replace(/\w\S*/g,t=>t.charAt(0).toUpperCase()+t.substr(1).toLowerCase());
+  }
+
+  function dateRange(from, to){
+    if(!to || fmt(from)===fmt(to)) return fmt(from);
+    return fmt(from)+' – '+fmt(to);
+  }
+
+  async function getZone(pin){
+    const code=parseInt(pin);
+    const isMum=(code>=400001&&code<=400104);
+    try{
+      const r=await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+      const data=await r.json();
+      if(!data||data[0].Status!=='Success'||!data[0].PostOffice?.length){
+        return isMum?{zone:'mumbai',city:'Mumbai',area:'',isMetro:true}:{zone:'india',city:'',area:'',isMetro:false};
+      }
+      const p=data[0].PostOffice[0];
+      const area=(p.Name||'').trim();
+      const city=(p.District||'').trim();
+      const state=(p.State||'').trim();
+      const cl=city.toLowerCase(), sl=state.toLowerCase();
+      if(isMum) return {zone:'mumbai',city,area,isMetro:true};
+      if(sl==='maharashtra') return {zone:'maharashtra',city,area,isMetro:false};
+      if(NEIGHBOURING.some(s=>sl===s||sl.includes(s))) return {zone:'neighbouring',city,area,isMetro:false};
+      if(NORTHEAST.some(s=>sl===s||sl.includes(s))) return {zone:'northeast',city,area,isMetro:false};
+      const isM=METRO.some(m=>cl===m||cl.includes(m));
+      return {zone:'india',city,area,isMetro:isM};
+    }catch(e){
+      return isMum?{zone:'mumbai',city:'Mumbai',area:'',isMetro:true}:{zone:'india',city:'',area:'',isMetro:false};
+    }
+  }
+
+  function getRates(z){
+    const c=cfg();
+    const base=isPast()?1:0;
+    const now=nowIST();
+    if(z.zone==='mumbai') return {
+      sFrom:addDays(now,base+c.ms), sTo:null,
+      eLabel:isPast()?'Tomorrow (within 24 hrs)':'Today (within 12 hrs)',
+      note:null
+    };
+    if(z.zone==='maharashtra') return {
+      sFrom:addDays(now,base+c.maSn), sTo:addDays(now,base+c.maSx),
+      eFrom:addDays(now,base+c.maE),  eTo:null, note:null
+    };
+    if(z.zone==='neighbouring') return {
+      sFrom:addDays(now,base+c.nbSn), sTo:addDays(now,base+c.nbSx),
+      eFrom:addDays(now,base+c.nbE),  eTo:null, note:null
+    };
+    if(z.zone==='northeast') return {
+      sFrom:addDays(now,base+c.neSn), sTo:addDays(now,base+c.neSx),
+      eFrom:addDays(now,base+c.neEn), eTo:addDays(now,base+c.neEx), note:null
+    };
+    const ed=z.isMetro?c.inME:c.inNE;
+    return {
+      sFrom:addDays(now,base+c.inSn), sTo:addDays(now,base+c.inSx),
+      eFrom:addDays(now,base+ed),     eTo:null,
+      note:c.showNote
+        ?(z.isMetro?'⚡ Metropolitan city — Express in '+ed+' Days':'📦 Non-metropolitan city — Express in '+ed+' Days')
+        :null
+    };
+  }
+
+  function render(rates){
+    // Standard
+    document.querySelectorAll('.vs-normal-date').forEach(el=>el.textContent=dateRange(rates.sFrom,rates.sTo));
+    document.querySelectorAll('.vs-dw-card.vs-normal').forEach(el=>el.style.display='flex');
+
+    // Express
+    const eLabel = rates.eLabel || (rates.eFrom ? dateRange(rates.eFrom, rates.eTo) : '');
+    document.querySelectorAll('.vs-express-date').forEach(el=>el.textContent=eLabel);
+    document.querySelectorAll('.vs-dw-card.vs-express').forEach(el=>el.style.display='flex');
+
+    // Note
+    document.querySelectorAll('.vs-dw-note').forEach(el=>{
+      if(rates.note){el.textContent=rates.note;el.style.display='';}
+      else el.style.display='none';
+    });
+  }
+
+  async function check(val, msg){
+  if(!val) return;
+  if(!/^\d{6}$/.test(val)){
+    msg.textContent='✗ Invalid — Please enter a valid 6-digit pincode';
+    msg.className='vs-pincode-msg vs-error';
+    document.querySelectorAll('.vs-dw-card').forEach(el=>el.style.display='none');
+    document.querySelectorAll('.vs-dw-note').forEach(el=>el.style.display='none');
+    return;
+  }
+
+  // Mumbai-only product restriction
+  const mumbaiOnly = document.getElementById('vs-delivery-widget')?.dataset.mumbaiOnly === 'true';
+  if(mumbaiOnly){
+    const code = parseInt(val);
+    const isMumbai = (code >= 400001 && code <= 400104);
+    if(!isMumbai){
+      msg.textContent = '✗ Sorry! This product delivers within Mumbai only';
+      msg.className = 'vs-pincode-msg vs-error';
+      document.querySelectorAll('.vs-dw-card').forEach(el=>el.style.display='none');
+      document.querySelectorAll('.vs-dw-note').forEach(el=>el.style.display='none');
+      return;
+    }
+  }
+
+  msg.textContent='Checking...';
+  msg.className='vs-pincode-msg';
+  const z=await getZone(val);
+  const rates=getRates(z);
+  let loc='✓ Delivery available';
+  if(z.area&&z.city) loc=`✓ ${titleCase(z.area)}, ${titleCase(z.city)}`;
+  else if(z.city)    loc=`✓ ${titleCase(z.city)}`;
+  msg.textContent=loc;
+  msg.className='vs-pincode-msg vs-success';
+  sessionStorage.setItem('vs_pincode',val);
+  fetch('/cart/update.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({attributes:{'Delivery Pincode':val}})});
+  render(rates);
+}
+
+
+  async function geoDetect(input,msg){
+    if(sessionStorage.getItem('vs_pincode')||!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      try{
+        const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`,{headers:{'Accept-Language':'en'}});
+        const d=await r.json();
+        const pin=(d.address?.postcode||'').replace(/\s/g,'');
+        if(/^\d{6}$/.test(pin)){input.value=pin;await check(pin,msg);}
+      }catch(e){}
+    },()=>{},{timeout:8000,maximumAge:300000});
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    const w=document.getElementById('vs-delivery-widget');
+    if(!w) return;
+    const input=w.querySelector('.vs-pincode-input');
+    const btn=w.querySelector('.vs-pincode-btn');
+    const msg=w.querySelector('.vs-pincode-msg');
+    if(!input||!btn||!msg) return;
+    const saved=sessionStorage.getItem('vs_pincode');
+    if(saved) input.value=saved;
+    btn.addEventListener('click',()=>check(input.value.trim(),msg));
+    input.addEventListener('keydown',e=>{if(e.key==='Enter')check(input.value.trim(),msg);});
+    if(cfg().geo) geoDetect(input,msg);
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Delivery Estimator",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Widget Text"
+    },
+    {
+      "type": "text",
+      "id": "widget_title",
+      "label": "Widget Title",
+      "default": "🚚 Delivery Information"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "Check"
+    },
+    {
+      "type": "text",
+      "id": "placeholder_text",
+      "label": "Pincode Placeholder",
+      "default": "Enter Pincode"
+    },
+    {
+      "type": "text",
+      "id": "standard_label",
+      "label": "Standard Delivery Label",
+      "default": "Standard Delivery"
+    },
+    {
+      "type": "text",
+      "id": "express_label",
+      "label": "Express Delivery Label",
+      "default": "Express Delivery"
+    },
+    {
+      "type": "header",
+      "content": "Date Format"
+    },
+    {
+      "type": "select",
+      "id": "date_format",
+      "label": "Date Display Format",
+      "options": [
+        { "value": "short",   "label": "Mon, 14 Apr 2026" },
+        { "value": "long",    "label": "Monday, 14 April 2026" },
+        { "value": "numeric", "label": "14/04/2026" },
+        { "value": "compact", "label": "14 Apr" }
+      ],
+      "default": "short"
+    },
+    {
+      "type": "header",
+      "content": "Features"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_geolocation",
+      "label": "Auto-detect Location (Geolocation)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_express",
+      "label": "Show Express Delivery Option",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_note",
+      "label": "Show Metro/Non-Metro Note",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#fdf8f3"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent / Button Color",
+      "default": "#8B6914"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#2c2c2c"
+    },
+    {
+      "type": "color",
+      "id": "card_bg_color",
+      "label": "Card Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "express_card_bg",
+      "label": "Express Card Background",
+      "default": "#fdf3e0"
+    },
+    {
+      "type": "header",
+      "content": "Cutoff Time"
+    },
+    {
+      "type": "range",
+      "id": "cutoff_hour",
+      "min": 0, "max": 23, "step": 1,
+      "label": "Order Cutoff Hour (IST 24hr)",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "Mumbai Zone"
+    },
+    {
+      "type": "range",
+      "id": "mumbai_standard_days",
+      "min": 1, "max": 10, "step": 1,
+      "label": "Standard Delivery Days",
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Maharashtra Zone"
+    },
+    {
+      "type": "range",
+      "id": "maha_standard_min",
+      "min": 1, "max": 10, "step": 1,
+      "label": "Standard Min Days",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "maha_standard_max",
+      "min": 1, "max": 10, "step": 1,
+      "label": "Standard Max Days",
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "maha_express_days",
+      "min": 1, "max": 10, "step": 1,
+      "label": "Express Days",
+      "default": 1
+    },
+    {
+      "type": "header",
+      "content": "Neighbouring States"
+    },
+    {
+      "type": "range",
+      "id": "neighbour_standard_min",
+      "min": 1, "max": 10, "step": 1,
+      "label": "Standard Min Days",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "neighbour_standard_max",
+      "min": 1, "max": 10, "step": 1,
+      "label": "Standard Max Days",
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "neighbour_express_days",
+      "min": 1, "max": 10, "step": 1,
+      "label": "Express Days",
+      "default": 2
+    },
+    {
+      "type": "header",
+      "content": "North East States"
+    },
+    {
+      "type": "range",
+      "id": "northeast_standard_min",
+      "min": 1, "max": 20, "step": 1,
+      "label": "Standard Min Days",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "northeast_standard_max",
+      "min": 1, "max": 20, "step": 1,
+      "label": "Standard Max Days",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "northeast_express_min",
+      "min": 1, "max": 10, "step": 1,
+      "label": "Express Min Days",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "northeast_express_max",
+      "min": 1, "max": 10, "step": 1,
+      "label": "Express Max Days",
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Rest of India"
+    },
+    {
+      "type": "range",
+      "id": "india_standard_min",
+      "min": 1, "max": 15, "step": 1,
+      "label": "Standard Min Days",
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "india_standard_max",
+      "min": 1, "max": 15, "step": 1,
+      "label": "Standard Max Days",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "india_metro_express_days",
+      "min": 1, "max": 10, "step": 1,
+      "label": "Metro City Express Days",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "india_nonmetro_express_days",
+      "min": 1, "max": 10, "step": 1,
+      "label": "Non-Metro Express Days",
+      "default": 4
+    }
+  ]
+}
+{% endschema %}

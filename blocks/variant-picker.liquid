@@ -1,0 +1,163 @@
+<style>
+  /* =============================================
+     MOBILE ONLY — applies only on screens ≤ 749px
+     ============================================= */
+  @media screen and (max-width: 749px) {
+
+    /* === BOTH option groups: Rectangle Cards === */
+    [data-fieldset-index="0"].variant-option--buttons,
+    [data-fieldset-index="1"].variant-option--buttons {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      width: 100% !important;
+    }
+
+    [data-fieldset-index="0"].variant-option--buttons .variant-option__button-label,
+    [data-fieldset-index="1"].variant-option--buttons .variant-option__button-label {
+      flex: 1 1 calc(50% - 4px) !important;
+      min-width: calc(50% - 4px) !important;
+      max-width: 100% !important;
+    }
+
+    [data-fieldset-index="0"].variant-option--buttons .variant-option__button-label__pill,
+    [data-fieldset-index="1"].variant-option--buttons .variant-option__button-label__pill {
+      border-radius: 4px !important;
+      min-height: 56px !important;
+      height: 100% !important;
+      width: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 10px 8px !important;
+      box-sizing: border-box !important;
+    }
+
+    [data-fieldset-index="0"].variant-option--buttons .variant-option__button-label__text,
+    [data-fieldset-index="1"].variant-option--buttons .variant-option__button-label__text {
+      font-weight: 600 !important;
+      text-align: center !important;
+      font-size: 12px !important;
+      line-height: 1.4 !important;
+      white-space: normal !important;
+      word-break: break-word !important;
+      display: block !important;
+    }
+
+  }
+</style>
+
+
+
+
+
+
+
+
+
+
+
+{% liquid
+  assign product_resource = closest.product
+  if request.visual_preview_mode and product_resource == blank
+    assign product_resource = collections.all.products.first
+  endif
+-%}
+
+{% render 'variant-main-picker', product_resource: product_resource %}
+
+{% schema %}
+{
+  "name": "t:names.product_variant_picker",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:content.resource_reference_product_variant_picker"
+    },
+    {
+      "type": "paragraph",
+      "content": "t:content.edit_variants_in_theme_settings"
+    },
+    {
+      "type": "select",
+      "id": "variant_style",
+      "label": "t:settings.style",
+      "options": [
+        {
+          "value": "dropdowns",
+          "label": "t:options.dropdowns"
+        },
+        {
+          "value": "buttons",
+          "label": "t:options.buttons"
+        }
+      ],
+      "default": "buttons"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_swatches",
+      "label": "t:settings.swatches",
+      "default": true
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "t:settings.alignment",
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "t:settings.left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "t:settings.right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.product_variant_picker",
+      "category": "t:categories.product"
+    }
+  ]
+}
+{% endschema %}

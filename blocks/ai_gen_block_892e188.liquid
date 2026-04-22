@@ -1,0 +1,648 @@
+{% doc %}
+  @prompt
+    Modify the existing variant picker block (variant-main-picker) on the product page. The block currently renders variants using the 'variant-main-picker' snippet. I need to change ONLY the visual appearance of the FIRST variant option group (e.g. flavor/type options like "Sugar" and "Jaggery") to display as tall styled rectangles/cards in a single horizontal row. The SECOND variant option group (e.g. box size/weight options) must remain exactly as it currently is (default button style).
+    
+    Requirements:
+    - First option group: horizontal row of tall rectangle cards, each showing the variant option name in bold, centered text. Cards should be equal width and fill the row.
+    - Second option group: unchanged, keep existing default button/pill style
+    - Selected card state: highlighted border + background color change
+    - Sold out card state: diagonal strikethrough line or reduced opacity
+    - Hover state: subtle lift or glow animation
+    
+    Desktop customization settings (in theme editor sidebar):
+    - Cards per row for first option (2, 3, 4, 5, 6)
+    - Card height (px range)
+    - Card border radius (px range)
+    - Card border width and color (normal + selected)
+    - Card background color (normal + selected)
+    - Card text color (normal + selected)
+    - Font size and font weight
+    - Gap between cards
+    - Animation speed
+    
+    Mobile customization settings (completely separate from desktop):
+    - Cards per row on mobile (2, 3, 4 — default 3)
+    - Card height on mobile (px range)
+    - Card font size on mobile
+    - Card padding on mobile
+    - Border radius on mobile
+    
+    Advanced settings:
+    - Show/hide price inside each card (toggle)
+    - Show sold-out badge overlay (toggle)
+    - Enable hover animation (toggle)
+    - Animation style: scale / glow / border-flash
+    - Letter spacing and text transform (uppercase/capitalize/none)
+    - Card shadow on selected state
+    
+    All settings must be grouped clearly under Desktop, Mobile, Style, and Advanced headers in the schema. The block must integrate with Shopify's variant selection system so selecting a card updates the product form and URL correctly., there must not be sold out show and all and keep the colour of the blocks matching to our theme okay this is correct but why the secodn options are not showing ?? also give text style changer okay and in the blocks let the whole text fit , keep the block size same , text size make it small okay , look how promissing this looks m the gradient the vibe and many more like this it must look okay and the box size option is still not visible okay , still the 2nd option's , all options are missing , the box option is not showing man
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-variant-picker-{{ ai_gen_id }} {
+    display: block;
+    width: 100%;
+  }
+
+  .ai-variant-picker__option-group-{{ ai_gen_id }} {
+    margin-bottom: 20px;
+  }
+
+  .ai-variant-picker__label-{{ ai_gen_id }} {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    color: {{ settings.color_schemes[section.settings.color_scheme].settings.foreground }};
+  }
+
+  .ai-variant-picker__cards-{{ ai_gen_id }} {
+    display: grid;
+    grid-template-columns: repeat({{ block.settings.desktop_cards_per_row }}, 1fr);
+    gap: {{ block.settings.card_gap }}px;
+  }
+
+  .ai-variant-picker__card-{{ ai_gen_id }} {
+    position: relative;
+    height: {{ block.settings.card_height }}px;
+    border: {{ block.settings.card_border_width }}px solid {{ block.settings.card_border_color }};
+    border-radius: {{ block.settings.card_border_radius }}px;
+    background: {{ block.settings.card_bg_gradient }};
+    color: {{ block.settings.card_text_color }};
+    cursor: pointer;
+    transition: all {{ block.settings.animation_speed }}s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .ai-variant-picker__card-{{ ai_gen_id }}:hover {
+    {% if block.settings.enable_hover_animation %}
+      {% if block.settings.animation_style == 'scale' %}
+        transform: scale(1.05);
+      {% elsif block.settings.animation_style == 'glow' %}
+        box-shadow: 0 0 12px {{ block.settings.card_border_color_selected }};
+      {% elsif block.settings.animation_style == 'border-flash' %}
+        border-color: {{ block.settings.card_border_color_selected }};
+      {% endif %}
+    {% endif %}
+  }
+
+  .ai-variant-picker__card-{{ ai_gen_id }}.selected {
+    border-color: {{ block.settings.card_border_color_selected }};
+    background: {{ block.settings.card_bg_gradient_selected }};
+    color: {{ block.settings.card_text_color_selected }};
+    {% if block.settings.show_selected_shadow %}
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    {% endif %}
+  }
+
+  .ai-variant-picker__card-name-{{ ai_gen_id }} {
+    font-size: {{ block.settings.card_font_size }}px;
+    font-weight: {{ block.settings.card_font_weight }};
+    letter-spacing: {{ block.settings.letter_spacing }}px;
+    text-transform: {{ block.settings.text_transform }};
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    width: 100%;
+    {% if block.settings.card_font_family == 'heading' %}
+      font-family: var(--font-heading-family);
+    {% elsif block.settings.card_font_family == 'accent' %}
+      font-family: var(--font-accent-family);
+    {% elsif block.settings.card_font_family == 'subheading' %}
+      font-family: var(--font-subheading-family);
+    {% else %}
+      font-family: var(--font-body-family);
+    {% endif %}
+  }
+
+  .ai-variant-picker__card-price-{{ ai_gen_id }} {
+    font-size: calc({{ block.settings.card_font_size }}px - 2px);
+    opacity: 0.8;
+    margin-top: 4px;
+    {% if block.settings.show_price == false %}
+      display: none;
+    {% endif %}
+  }
+
+  .ai-variant-picker__default-buttons-{{ ai_gen_id }} {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ai-variant-picker__default-button-{{ ai_gen_id }} {
+    padding: 10px 20px;
+    border: 1px solid {{ settings.color_schemes[section.settings.color_scheme].settings.variant_border_color }};
+    border-radius: {{ settings.variant_button_radius }}px;
+    background-color: {{ settings.color_schemes[section.settings.color_scheme].settings.variant_background_color }};
+    color: {{ settings.color_schemes[section.settings.color_scheme].settings.variant_text_color }};
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    {% if settings.variant_button_width == 'equal-width-buttons' %}
+      flex: 1;
+      min-width: 0;
+    {% endif %}
+  }
+
+  .ai-variant-picker__default-button-{{ ai_gen_id }}:hover {
+    background-color: {{ settings.color_schemes[section.settings.color_scheme].settings.variant_hover_background_color }};
+    border-color: {{ settings.color_schemes[section.settings.color_scheme].settings.variant_hover_border_color }};
+    color: {{ settings.color_schemes[section.settings.color_scheme].settings.variant_hover_text_color }};
+  }
+
+  .ai-variant-picker__default-button-{{ ai_gen_id }}.selected {
+    background-color: {{ settings.color_schemes[section.settings.color_scheme].settings.selected_variant_background_color }};
+    border-color: {{ settings.color_schemes[section.settings.color_scheme].settings.selected_variant_border_color }};
+    color: {{ settings.color_schemes[section.settings.color_scheme].settings.selected_variant_text_color }};
+  }
+
+  .ai-variant-picker__default-button-{{ ai_gen_id }}.selected:hover {
+    background-color: {{ settings.color_schemes[section.settings.color_scheme].settings.selected_variant_hover_background_color }};
+    border-color: {{ settings.color_schemes[section.settings.color_scheme].settings.selected_variant_hover_border_color }};
+    color: {{ settings.color_schemes[section.settings.color_scheme].settings.selected_variant_hover_text_color }};
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-variant-picker__cards-{{ ai_gen_id }} {
+      grid-template-columns: repeat({{ block.settings.mobile_cards_per_row }}, 1fr);
+    }
+
+    .ai-variant-picker__card-{{ ai_gen_id }} {
+      height: {{ block.settings.mobile_card_height }}px;
+      padding: {{ block.settings.mobile_card_padding }}px;
+      border-radius: {{ block.settings.mobile_border_radius }}px;
+    }
+
+    .ai-variant-picker__card-name-{{ ai_gen_id }} {
+      font-size: {{ block.settings.mobile_font_size }}px;
+    }
+
+    .ai-variant-picker__card-price-{{ ai_gen_id }} {
+      font-size: calc({{ block.settings.mobile_font_size }}px - 2px);
+    }
+  }
+{% endstyle %}
+
+<variant-picker-{{ ai_gen_id }} class="ai-variant-picker-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  {% unless product.has_only_default_variant %}
+    {% for option in product.options_with_values %}
+      <div class="ai-variant-picker__option-group-{{ ai_gen_id }}">
+        <label class="ai-variant-picker__label-{{ ai_gen_id }}">
+          {{ option.name }}
+        </label>
+
+        {% if forloop.index == 1 %}
+          <div class="ai-variant-picker__cards-{{ ai_gen_id }}" data-option-index="{{ forloop.index0 }}">
+            {% for value in option.values %}
+              {% assign option_disabled = true %}
+              {% assign variant_for_value = null %}
+
+              {% for variant in product.variants %}
+                {% if variant.option1 == value %}
+                  {% assign variant_for_value = variant %}
+                  {% if variant.available %}
+                    {% assign option_disabled = false %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+
+              {% assign is_selected = false %}
+              {% if product.selected_or_first_available_variant.option1 == value %}
+                {% assign is_selected = true %}
+              {% endif %}
+
+              <div
+                class="ai-variant-picker__card-{{ ai_gen_id }} {% if is_selected %}selected{% endif %}"
+                data-option-value="{{ value | escape }}"
+                data-option-index="0"
+              >
+                <div class="ai-variant-picker__card-name-{{ ai_gen_id }}">{{ value }}</div>
+                {% if variant_for_value and block.settings.show_price %}
+                  <div class="ai-variant-picker__card-price-{{ ai_gen_id }}">
+                    {{ variant_for_value.price | money }}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="ai-variant-picker__default-buttons-{{ ai_gen_id }}" data-option-index="{{ forloop.index0 }}">
+            {% for value in option.values %}
+              {% assign option_disabled = true %}
+
+              {% for variant in product.variants %}
+                {% if forloop.index == 2 %}
+                  {% if variant.option2 == value and variant.available %}
+                    {% assign option_disabled = false %}
+                  {% endif %}
+                {% elsif forloop.index == 3 %}
+                  {% if variant.option3 == value and variant.available %}
+                    {% assign option_disabled = false %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+
+              {% assign is_selected = false %}
+              {% if forloop.parentloop.index == 2 and product.selected_or_first_available_variant.option2 == value %}
+                {% assign is_selected = true %}
+              {% elsif forloop.parentloop.index == 3 and product.selected_or_first_available_variant.option3 == value %}
+                {% assign is_selected = true %}
+              {% endif %}
+
+              <button
+                type="button"
+                class="ai-variant-picker__default-button-{{ ai_gen_id }} {% if is_selected %}selected{% endif %}"
+                data-option-value="{{ value | escape }}"
+                data-option-index="{{ forloop.parentloop.index0 }}"
+              >
+                {{ value }}
+              </button>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% endunless %}
+</variant-picker-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class VariantPicker{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.cards = this.querySelectorAll('.ai-variant-picker__card-{{ ai_gen_id }}');
+        this.buttons = this.querySelectorAll('.ai-variant-picker__default-button-{{ ai_gen_id }}');
+      }
+
+      connectedCallback() {
+        this.setupEventListeners();
+      }
+
+      setupEventListeners() {
+        this.cards.forEach((card) => {
+          card.addEventListener('click', (e) => {
+            const optionIndex = parseInt(card.dataset.optionIndex);
+            const optionValue = card.dataset.optionValue;
+
+            const cardsContainer = card.parentElement;
+            cardsContainer.querySelectorAll('.ai-variant-picker__card-{{ ai_gen_id }}').forEach((c) => {
+              c.classList.remove('selected');
+            });
+            card.classList.add('selected');
+
+            this.updateVariant(optionIndex, optionValue);
+          });
+        });
+
+        this.buttons.forEach((button) => {
+          button.addEventListener('click', (e) => {
+            const optionIndex = parseInt(button.dataset.optionIndex);
+            const optionValue = button.dataset.optionValue;
+
+            const buttonsContainer = button.parentElement;
+            buttonsContainer.querySelectorAll('.ai-variant-picker__default-button-{{ ai_gen_id }}').forEach((b) => {
+              b.classList.remove('selected');
+            });
+            button.classList.add('selected');
+
+            this.updateVariant(optionIndex, optionValue);
+          });
+        });
+      }
+
+      updateVariant(optionIndex, optionValue) {
+        const productForm = document.querySelector('product-form');
+        if (!productForm) return;
+
+        const radioInputs = productForm.querySelectorAll(`input[name="options[${optionIndex}]"]`);
+        radioInputs.forEach((input) => {
+          if (input.value === optionValue) {
+            input.checked = true;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        });
+
+        const selectInput = productForm.querySelector(`select[name="options[${optionIndex}]"]`);
+        if (selectInput) {
+          selectInput.value = optionValue;
+          selectInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+    }
+
+    customElements.define('variant-picker-{{ ai_gen_id }}', VariantPicker{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Variant card picker",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Desktop settings"
+    },
+    {
+      "type": "range",
+      "id": "desktop_cards_per_row",
+      "label": "Cards per row",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "card_height",
+      "label": "Card height",
+      "min": 60,
+      "max": 200,
+      "step": 10,
+      "unit": "px",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "card_gap",
+      "label": "Gap between cards",
+      "min": 4,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "card_font_size",
+      "label": "Font size",
+      "min": 8,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 11
+    },
+    {
+      "type": "header",
+      "content": "Mobile settings"
+    },
+    {
+      "type": "range",
+      "id": "mobile_cards_per_row",
+      "label": "Cards per row on mobile",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "mobile_card_height",
+      "label": "Card height on mobile",
+      "min": 50,
+      "max": 150,
+      "step": 10,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "mobile_font_size",
+      "label": "Font size on mobile",
+      "min": 8,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "mobile_card_padding",
+      "label": "Card padding on mobile",
+      "min": 4,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "mobile_border_radius",
+      "label": "Border radius on mobile",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "range",
+      "id": "card_border_radius",
+      "label": "Card border radius",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "card_border_width",
+      "label": "Card border width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "default": 1
+    },
+    {
+      "type": "color",
+      "id": "card_border_color",
+      "label": "Border color",
+      "default": "#00000021"
+    },
+    {
+      "type": "color",
+      "id": "card_border_color_selected",
+      "label": "Border color (selected)",
+      "default": "#5e1111cf"
+    },
+    {
+      "type": "text",
+      "id": "card_bg_gradient",
+      "label": "Background gradient",
+      "default": "linear-gradient(135deg, #f9f1e3 0%, #fef8ed 100%)"
+    },
+    {
+      "type": "text",
+      "id": "card_bg_gradient_selected",
+      "label": "Background gradient (selected)",
+      "default": "linear-gradient(135deg, #5e1111cf 0%, #7a1515 100%)"
+    },
+    {
+      "type": "color",
+      "id": "card_text_color",
+      "label": "Text color",
+      "default": "#5e1111cf"
+    },
+    {
+      "type": "color",
+      "id": "card_text_color_selected",
+      "label": "Text color (selected)",
+      "default": "#ffffff"
+    },
+    {
+      "type": "select",
+      "id": "card_font_weight",
+      "label": "Font weight",
+      "options": [
+        {
+          "value": "400",
+          "label": "Normal"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semi-bold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ],
+      "default": "600"
+    },
+    {
+      "type": "select",
+      "id": "text_transform",
+      "label": "Text transform",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        },
+        {
+          "value": "capitalize",
+          "label": "Capitalize"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "letter_spacing",
+      "label": "Letter spacing",
+      "min": 0,
+      "max": 2,
+      "step": 0.1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "show_selected_shadow",
+      "label": "Show shadow on selected card",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "select",
+      "id": "card_font_family",
+      "label": "Font family",
+      "options": [
+        {
+          "value": "body",
+          "label": "Body"
+        },
+        {
+          "value": "heading",
+          "label": "Heading"
+        },
+        {
+          "value": "accent",
+          "label": "Accent"
+        },
+        {
+          "value": "subheading",
+          "label": "Subheading"
+        }
+      ],
+      "default": "body"
+    },
+    {
+      "type": "header",
+      "content": "Advanced"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_price",
+      "label": "Show price inside card",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_hover_animation",
+      "label": "Enable hover animation",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "animation_style",
+      "label": "Animation style",
+      "options": [
+        {
+          "value": "scale",
+          "label": "Scale"
+        },
+        {
+          "value": "glow",
+          "label": "Glow"
+        },
+        {
+          "value": "border-flash",
+          "label": "Border flash"
+        }
+      ],
+      "default": "scale"
+    },
+    {
+      "type": "range",
+      "id": "animation_speed",
+      "label": "Animation speed",
+      "min": 0.1,
+      "max": 1,
+      "step": 0.1,
+      "unit": "s",
+      "default": 0.3
+    }
+  ],
+  "presets": [
+    {
+      "name": "Variant card picker"
+    }
+  ]
+}
+{% endschema %}

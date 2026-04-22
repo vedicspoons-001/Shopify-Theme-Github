@@ -1,0 +1,100 @@
+<style>
+.feedback {
+    width: 100%;
+    max-width: 750px;
+    background: #fff;
+    margin: 0 auto;
+    padding: 15px;
+    box-shadow: 1px 1px 16px rgba(0, 0, 0, 0.3);
+}
+
+.star-rating {
+    margin: 2px 0 0px;
+    font-size: 0;
+    white-space: nowrap;
+    display: inline-block;
+    width: 175px;
+    height: 35px;
+    overflow: hidden;
+    position: relative;
+    background: url('data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iMjBweCIgaGVpZ2h0PSIyMHB4IiB2aWV3Qm94PSIwIDAgMjAgMjAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDIwIDIwIiB4bWw6c3BhY2U9InByZXNlcnZlIj48cG9seWdvbiBmaWxsPSIjREREREREIiBwb2ludHM9IjEwLDAgMTMuMDksNi41ODMgMjAsNy42MzkgMTUsMTIuNzY0IDE2LjE4LDIwIDEwLDE2LjU4MyAzLjgyLDIwIDUsMTIuNzY0IDAsNy42MzkgNi45MSw2LjU4MyAiLz48L3N2Zz4=');
+    background-size: contain;
+}
+.star-rating i {
+    opacity: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 20%;
+    z-index: 1;
+    background: url('data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iMjBweCIgaGVpZ2h0PSIyMHB4IiB2aWV3Qm94PSIwIDAgMjAgMjAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDIwIDIwIiB4bWw6c3BhY2U9InByZXNlcnZlIj48cG9seWdvbiBmaWxsPSIjRkZERjg4IiBwb2ludHM9IjEwLDAgMTMuMDksNi41ODMgMjAsNy42MzkgMTUsMTIuNzY0IDE2LjE4LDIwIDEwLDE2LjU4MyAzLjgyLDIwIDUsMTIuNzY0IDAsNy42MzkgNi45MSw2LjU4MyAiLz48L3N2Zz4=');
+    background-size: contain;
+}
+.star-rating input {
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    opacity: 0;
+    display: inline-block;
+    width: 20%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    z-index: 2;
+    position: relative;
+}
+.star-rating input:hover+i, .star-rating input:checked+i {
+    opacity: 1;
+}
+.star-rating i~i {
+    width: 40%;
+}
+.star-rating i~i~i {
+    width: 60%;
+}
+.star-rating i~i~i~i {
+    width: 80%;
+}
+.star-rating i~i~i~i~i {
+    width: 100%;
+}
+.section {
+margin-top: 2%;
+}
+
+</style>
+
+ <section class="section">
+    <div class="container">
+        <div class="col-rt-12">
+          <div class="feedback" >
+            <div id="thank" class="thank" style="color: #046e04; display: none" >Thank you for reaching out and providing us with valuable feedback.
+</div>
+            <div id="error" class="error_message" style="color: #f50505; display: none " >Feedback already submitted!</div>
+            <div id="feedback_form"  style="display: none" >
+                <div style="text-align: center;font-size: 19px;margin-bottom: 31px;font-weight: bold;">Add Review for our Delivery Partner </div>
+                <div>
+                    <span class="star-rating"   >
+                      <input type="radio" name="review_rating" onclick="wk_saverating(1)"  value="1"><i></i>
+                      <input type="radio" name="review_rating" onclick="wk_saverating(2)" value="2"><i></i>
+                      <input type="radio" name="review_rating" onclick="wk_saverating(3)" value="3"><i></i>
+                      <input type="radio" name="review_rating" onclick="wk_saverating(4)" value="4"><i></i>
+                      <input type="radio" name="review_rating" onclick="wk_saverating(5)" value="5"><i></i>
+                    </span>
+                    <input type="hidden"  id="rating_change" value="0" name="rating_status"><i></i>
+
+                     <p id="rating" style="margin: 0;color: red;"></p>
+                 </div>
+               <div> <label>Tell as about more</label> </div>
+                <textarea cols="50" rows="5" name="review_description" id="review_description" class="text-area"  spellcheck="false" maxlength="500"></textarea>
+                 <p id="description" style="color: red;"></p>
+                <div>
+                    <button onclick="wk_saveFeedback()" type="submit" class="button" style="margin-top: 2%;">Send</button>
+                </div>
+            </div>
+        </div>
+        </div>
+  </div>
+  </section>
+
+

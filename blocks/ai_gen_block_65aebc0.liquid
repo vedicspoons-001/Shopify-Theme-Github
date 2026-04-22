@@ -1,0 +1,1040 @@
+{% doc %}
+  @prompt
+    Create a custom Shopify theme section called "Custom Multicolumn" with the following features:
+    
+    - Each column contains: an image, a heading, and a one-line description
+    - Support 2–4 columns configurable via settings
+    - Desktop layout: columns displayed side by side in a row
+    - Mobile layout: columns stacked vertically OR displayed as a 2-column grid — controlled by a mobile-specific setting
+    - Settings to control:
+      - Number of columns on desktop (2, 3, or 4)
+      - Mobile layout toggle: "Stack (1 column)" vs "2-column grid"
+      - Column gap/spacing separately for desktop and mobile
+      - Image aspect ratio (square, portrait, landscape)
+      - Text alignment (left, center, right)
+      - Heading font size separately for desktop and mobile
+      - Description font size separately for desktop and mobile
+    - Each column block should have: image picker, heading text field, description text field
+    - Use CSS media queries to apply desktop vs mobile styles independently, it must look perfectly matched with mobile layput firstly , it must be miore cleaner and add more features in desktop and miobile okay 
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-multicolumn-{{ ai_gen_id }} {
+    display: block;
+    width: 100%;
+    padding: {{ block.settings.padding_mobile }}px 0;
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-multicolumn-{{ ai_gen_id }} {
+      width: {{ block.settings.desktop_width_percent }}%;
+      padding: {{ block.settings.padding_desktop }}px 0;
+    }
+  }
+
+  .ai-multicolumn-section-header-{{ ai_gen_id }} {
+    text-align: {{ block.settings.section_title_alignment }};
+    margin-bottom: {{ block.settings.section_title_spacing_mobile }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-multicolumn-section-header-{{ ai_gen_id }} {
+      margin-bottom: {{ block.settings.section_title_spacing_desktop }}px;
+    }
+  }
+
+  .ai-multicolumn-section-title-{{ ai_gen_id }} {
+    margin: 0 0 8px;
+    font-size: {{ block.settings.section_title_size_mobile }}px;
+    font-weight: 700;
+    color: {{ block.settings.section_title_color }};
+    line-height: 1.2;
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-multicolumn-section-title-{{ ai_gen_id }} {
+      font-size: {{ block.settings.section_title_size_desktop }}px;
+    }
+  }
+
+  .ai-multicolumn-section-subtitle-{{ ai_gen_id }} {
+    margin: 0;
+    font-size: {{ block.settings.section_subtitle_size_mobile }}px;
+    color: {{ block.settings.section_subtitle_color }};
+    line-height: 1.5;
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-multicolumn-section-subtitle-{{ ai_gen_id }} {
+      font-size: {{ block.settings.section_subtitle_size_desktop }}px;
+    }
+  }
+
+  .ai-multicolumn-container-{{ ai_gen_id }} {
+    display: grid;
+    gap: {{ block.settings.column_gap_mobile }}px;
+    grid-template-columns: {% if block.settings.mobile_layout == 'stack' %}1fr{% else %}repeat(2, 1fr){% endif %};
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-multicolumn-container-{{ ai_gen_id }} {
+      gap: {{ block.settings.column_gap_desktop }}px;
+      grid-template-columns: repeat({{ block.settings.columns_desktop }}, 1fr);
+    }
+  }
+
+  .ai-multicolumn-column-{{ ai_gen_id }} {
+    display: flex;
+    flex-direction: column;
+    text-align: {{ block.settings.text_alignment_mobile }};
+    background-color: {{ block.settings.column_background_color }};
+    border-radius: {{ block.settings.column_border_radius }}px;
+    padding: {{ block.settings.column_padding_mobile }}px;
+    {% if block.settings.show_column_shadow %}
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    {% endif %}
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-multicolumn-column-{{ ai_gen_id }} {
+      text-align: {{ block.settings.text_alignment_desktop }};
+      padding: {{ block.settings.column_padding_desktop }}px;
+    }
+
+    {% if block.settings.enable_hover_effect %}
+      .ai-multicolumn-column-{{ ai_gen_id }}:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+      }
+    {% endif %}
+  }
+
+  .ai-multicolumn-image-wrapper-{{ ai_gen_id }} {
+    width: 100%;
+    margin-bottom: {{ block.settings.image_spacing_mobile }}px;
+    overflow: hidden;
+    border-radius: {{ block.settings.image_border_radius }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-multicolumn-image-wrapper-{{ ai_gen_id }} {
+      margin-bottom: {{ block.settings.image_spacing_desktop }}px;
+    }
+  }
+
+  .ai-multicolumn-image-wrapper-{{ ai_gen_id }}.aspect-square {
+    aspect-ratio: 1 / 1;
+  }
+
+  .ai-multicolumn-image-wrapper-{{ ai_gen_id }}.aspect-portrait {
+    aspect-ratio: 3 / 4;
+  }
+
+  .ai-multicolumn-image-wrapper-{{ ai_gen_id }}.aspect-landscape {
+    aspect-ratio: 4 / 3;
+  }
+
+  .ai-multicolumn-image-wrapper-{{ ai_gen_id }}.aspect-wide {
+    aspect-ratio: 16 / 9;
+  }
+
+  .ai-multicolumn-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  {% if block.settings.enable_image_zoom %}
+    @media screen and (min-width: 750px) {
+      .ai-multicolumn-column-{{ ai_gen_id }}:hover .ai-multicolumn-image-{{ ai_gen_id }} {
+        transform: scale(1.05);
+      }
+    }
+  {% endif %}
+
+  .ai-multicolumn-image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f9f1e3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-multicolumn-image-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    max-width: 120px;
+    max-height: 120px;
+    opacity: 0.3;
+  }
+
+  .ai-multicolumn-heading-{{ ai_gen_id }} {
+    margin: 0 0 {{ block.settings.heading_spacing }}px;
+    font-size: {{ block.settings.heading_size_mobile }}px;
+    font-weight: {{ block.settings.heading_weight }};
+    color: {{ block.settings.heading_color }};
+    line-height: 1.3;
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-multicolumn-heading-{{ ai_gen_id }} {
+      font-size: {{ block.settings.heading_size_desktop }}px;
+    }
+  }
+
+  .ai-multicolumn-description-{{ ai_gen_id }} {
+    margin: 0;
+    font-size: {{ block.settings.description_size_mobile }}px;
+    line-height: 1.6;
+    color: {{ block.settings.description_color }};
+    opacity: 0.9;
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-multicolumn-description-{{ ai_gen_id }} {
+      font-size: {{ block.settings.description_size_desktop }}px;
+    }
+  }
+
+  .ai-multicolumn-link-{{ ai_gen_id }} {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: {{ block.settings.link_spacing }}px;
+    font-size: {{ block.settings.link_size }}px;
+    font-weight: 500;
+    color: {{ block.settings.link_color }};
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .ai-multicolumn-link-{{ ai_gen_id }}:hover {
+    color: {{ block.settings.link_hover_color }};
+  }
+
+  .ai-multicolumn-link-arrow-{{ ai_gen_id }} {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s ease;
+  }
+
+  .ai-multicolumn-link-{{ ai_gen_id }}:hover .ai-multicolumn-link-arrow-{{ ai_gen_id }} {
+    transform: translateX(4px);
+  }
+{% endstyle %}
+
+<div class="ai-multicolumn-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  {% if block.settings.section_title != blank or block.settings.section_subtitle != blank %}
+    <div class="ai-multicolumn-section-header-{{ ai_gen_id }}">
+      {% if block.settings.section_title != blank %}
+        <h2 class="ai-multicolumn-section-title-{{ ai_gen_id }}">{{ block.settings.section_title }}</h2>
+      {% endif %}
+      {% if block.settings.section_subtitle != blank %}
+        <p class="ai-multicolumn-section-subtitle-{{ ai_gen_id }}">{{ block.settings.section_subtitle }}</p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <div class="ai-multicolumn-container-{{ ai_gen_id }}">
+    {% if block.settings.show_column_1 %}
+      <div class="ai-multicolumn-column-{{ ai_gen_id }}">
+        <div class="ai-multicolumn-image-wrapper-{{ ai_gen_id }} aspect-{{ block.settings.image_aspect_ratio }}">
+          {% if block.settings.image_1 %}
+            <img
+              src="{{ block.settings.image_1 | image_url: width: 800 }}"
+              alt="{{ block.settings.image_1.alt | escape }}"
+              loading="lazy"
+              width="{{ block.settings.image_1.width }}"
+              height="{{ block.settings.image_1.height }}"
+              class="ai-multicolumn-image-{{ ai_gen_id }}"
+            >
+          {% else %}
+            <div class="ai-multicolumn-image-placeholder-{{ ai_gen_id }}">
+              {{ 'image' | placeholder_svg_tag }}
+            </div>
+          {% endif %}
+        </div>
+
+        {% if block.settings.heading_1 != blank %}
+          <h3 class="ai-multicolumn-heading-{{ ai_gen_id }}">{{ block.settings.heading_1 }}</h3>
+        {% endif %}
+
+        {% if block.settings.description_1 != blank %}
+          <p class="ai-multicolumn-description-{{ ai_gen_id }}">{{ block.settings.description_1 }}</p>
+        {% endif %}
+
+        {% if block.settings.show_links and block.settings.link_1 != blank and block.settings.link_text_1 != blank %}
+          <a href="{{ block.settings.link_1 }}" class="ai-multicolumn-link-{{ ai_gen_id }}">
+            {{ block.settings.link_text_1 }}
+            <svg class="ai-multicolumn-link-arrow-{{ ai_gen_id }}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 3l5 5-5 5"/>
+            </svg>
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% if block.settings.show_column_2 %}
+      <div class="ai-multicolumn-column-{{ ai_gen_id }}">
+        <div class="ai-multicolumn-image-wrapper-{{ ai_gen_id }} aspect-{{ block.settings.image_aspect_ratio }}">
+          {% if block.settings.image_2 %}
+            <img
+              src="{{ block.settings.image_2 | image_url: width: 800 }}"
+              alt="{{ block.settings.image_2.alt | escape }}"
+              loading="lazy"
+              width="{{ block.settings.image_2.width }}"
+              height="{{ block.settings.image_2.height }}"
+              class="ai-multicolumn-image-{{ ai_gen_id }}"
+            >
+          {% else %}
+            <div class="ai-multicolumn-image-placeholder-{{ ai_gen_id }}">
+              {{ 'image' | placeholder_svg_tag }}
+            </div>
+          {% endif %}
+        </div>
+
+        {% if block.settings.heading_2 != blank %}
+          <h3 class="ai-multicolumn-heading-{{ ai_gen_id }}">{{ block.settings.heading_2 }}</h3>
+        {% endif %}
+
+        {% if block.settings.description_2 != blank %}
+          <p class="ai-multicolumn-description-{{ ai_gen_id }}">{{ block.settings.description_2 }}</p>
+        {% endif %}
+
+        {% if block.settings.show_links and block.settings.link_2 != blank and block.settings.link_text_2 != blank %}
+          <a href="{{ block.settings.link_2 }}" class="ai-multicolumn-link-{{ ai_gen_id }}">
+            {{ block.settings.link_text_2 }}
+            <svg class="ai-multicolumn-link-arrow-{{ ai_gen_id }}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 3l5 5-5 5"/>
+            </svg>
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% if block.settings.show_column_3 %}
+      <div class="ai-multicolumn-column-{{ ai_gen_id }}">
+        <div class="ai-multicolumn-image-wrapper-{{ ai_gen_id }} aspect-{{ block.settings.image_aspect_ratio }}">
+          {% if block.settings.image_3 %}
+            <img
+              src="{{ block.settings.image_3 | image_url: width: 800 }}"
+              alt="{{ block.settings.image_3.alt | escape }}"
+              loading="lazy"
+              width="{{ block.settings.image_3.width }}"
+              height="{{ block.settings.image_3.height }}"
+              class="ai-multicolumn-image-{{ ai_gen_id }}"
+            >
+          {% else %}
+            <div class="ai-multicolumn-image-placeholder-{{ ai_gen_id }}">
+              {{ 'image' | placeholder_svg_tag }}
+            </div>
+          {% endif %}
+        </div>
+
+        {% if block.settings.heading_3 != blank %}
+          <h3 class="ai-multicolumn-heading-{{ ai_gen_id }}">{{ block.settings.heading_3 }}</h3>
+        {% endif %}
+
+        {% if block.settings.description_3 != blank %}
+          <p class="ai-multicolumn-description-{{ ai_gen_id }}">{{ block.settings.description_3 }}</p>
+        {% endif %}
+
+        {% if block.settings.show_links and block.settings.link_3 != blank and block.settings.link_text_3 != blank %}
+          <a href="{{ block.settings.link_3 }}" class="ai-multicolumn-link-{{ ai_gen_id }}">
+            {{ block.settings.link_text_3 }}
+            <svg class="ai-multicolumn-link-arrow-{{ ai_gen_id }}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 3l5 5-5 5"/>
+            </svg>
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% if block.settings.show_column_4 %}
+      <div class="ai-multicolumn-column-{{ ai_gen_id }}">
+        <div class="ai-multicolumn-image-wrapper-{{ ai_gen_id }} aspect-{{ block.settings.image_aspect_ratio }}">
+          {% if block.settings.image_4 %}
+            <img
+              src="{{ block.settings.image_4 | image_url: width: 800 }}"
+              alt="{{ block.settings.image_4.alt | escape }}"
+              loading="lazy"
+              width="{{ block.settings.image_4.width }}"
+              height="{{ block.settings.image_4.height }}"
+              class="ai-multicolumn-image-{{ ai_gen_id }}"
+            >
+          {% else %}
+            <div class="ai-multicolumn-image-placeholder-{{ ai_gen_id }}">
+              {{ 'image' | placeholder_svg_tag }}
+            </div>
+          {% endif %}
+        </div>
+
+        {% if block.settings.heading_4 != blank %}
+          <h3 class="ai-multicolumn-heading-{{ ai_gen_id }}">{{ block.settings.heading_4 }}</h3>
+        {% endif %}
+
+        {% if block.settings.description_4 != blank %}
+          <p class="ai-multicolumn-description-{{ ai_gen_id }}">{{ block.settings.description_4 }}</p>
+        {% endif %}
+
+        {% if block.settings.show_links and block.settings.link_4 != blank and block.settings.link_text_4 != blank %}
+          <a href="{{ block.settings.link_4 }}" class="ai-multicolumn-link-{{ ai_gen_id }}">
+            {{ block.settings.link_text_4 }}
+            <svg class="ai-multicolumn-link-arrow-{{ ai_gen_id }}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 3l5 5-5 5"/>
+            </svg>
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Custom multicolumn",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section header"
+    },
+    {
+      "type": "text",
+      "id": "section_title",
+      "label": "Title"
+    },
+    {
+      "type": "text",
+      "id": "section_subtitle",
+      "label": "Subtitle"
+    },
+    {
+      "type": "select",
+      "id": "section_title_alignment",
+      "label": "Alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "section_title_size_desktop",
+      "label": "Desktop title size",
+      "min": 16,
+      "max": 56,
+      "step": 2,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "section_title_size_mobile",
+      "label": "Mobile title size",
+      "min": 16,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "section_subtitle_size_desktop",
+      "label": "Desktop subtitle size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "section_subtitle_size_mobile",
+      "label": "Mobile subtitle size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "color",
+      "id": "section_title_color",
+      "label": "Title color",
+      "default": "#5e1111"
+    },
+    {
+      "type": "color",
+      "id": "section_subtitle_color",
+      "label": "Subtitle color",
+      "default": "#5e1111"
+    },
+    {
+      "type": "range",
+      "id": "section_title_spacing_desktop",
+      "label": "Desktop spacing below",
+      "min": 16,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "section_title_spacing_mobile",
+      "label": "Mobile spacing below",
+      "min": 12,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "Desktop columns",
+      "options": [
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        }
+      ],
+      "default": "3"
+    },
+    {
+      "type": "select",
+      "id": "mobile_layout",
+      "label": "Mobile layout",
+      "options": [
+        {
+          "value": "stack",
+          "label": "Stack (1 column)"
+        },
+        {
+          "value": "grid",
+          "label": "2-column grid"
+        }
+      ],
+      "default": "stack"
+    },
+    {
+      "type": "range",
+      "id": "column_gap_desktop",
+      "label": "Desktop gap",
+      "min": 8,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "column_gap_mobile",
+      "label": "Mobile gap",
+      "min": 8,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_desktop",
+      "label": "Desktop padding",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_mobile",
+      "label": "Mobile padding",
+      "min": 0,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "desktop_width_percent",
+      "label": "Desktop width",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "Column style"
+    },
+    {
+      "type": "color",
+      "id": "column_background_color",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "column_border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "column_padding_desktop",
+      "label": "Desktop padding",
+      "min": 0,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "column_padding_mobile",
+      "label": "Mobile padding",
+      "min": 0,
+      "max": 32,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "checkbox",
+      "id": "show_column_shadow",
+      "label": "Show shadow",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_hover_effect",
+      "label": "Enable hover lift effect",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "select",
+      "id": "image_aspect_ratio",
+      "label": "Aspect ratio",
+      "options": [
+        {
+          "value": "square",
+          "label": "Square (1:1)"
+        },
+        {
+          "value": "portrait",
+          "label": "Portrait (3:4)"
+        },
+        {
+          "value": "landscape",
+          "label": "Landscape (4:3)"
+        },
+        {
+          "value": "wide",
+          "label": "Wide (16:9)"
+        }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "range",
+      "id": "image_border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "image_spacing_desktop",
+      "label": "Desktop spacing below",
+      "min": 8,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "image_spacing_mobile",
+      "label": "Mobile spacing below",
+      "min": 8,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_image_zoom",
+      "label": "Enable hover zoom",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Text"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment_desktop",
+      "label": "Desktop alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment_mobile",
+      "label": "Mobile alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "heading_size_desktop",
+      "label": "Desktop heading size",
+      "min": 14,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "heading_size_mobile",
+      "label": "Mobile heading size",
+      "min": 14,
+      "max": 28,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "heading_weight",
+      "label": "Heading weight",
+      "options": [
+        {
+          "value": "400",
+          "label": "Normal"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ],
+      "default": "600"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#5e1111"
+    },
+    {
+      "type": "range",
+      "id": "heading_spacing",
+      "label": "Spacing below heading",
+      "min": 4,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "description_size_desktop",
+      "label": "Desktop description size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "description_size_mobile",
+      "label": "Mobile description size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "color",
+      "id": "description_color",
+      "label": "Description color",
+      "default": "#5e1111"
+    },
+    {
+      "type": "header",
+      "content": "Links"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_links",
+      "label": "Show links",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "link_size",
+      "label": "Link size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "link_spacing",
+      "label": "Spacing above link",
+      "min": 8,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "color",
+      "id": "link_color",
+      "label": "Link color",
+      "default": "#5e1111"
+    },
+    {
+      "type": "color",
+      "id": "link_hover_color",
+      "label": "Link hover color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Column 1"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_column_1",
+      "label": "Show column",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "image_1",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "heading_1",
+      "label": "Heading",
+      "default": "Premium Quality"
+    },
+    {
+      "type": "text",
+      "id": "description_1",
+      "label": "Description",
+      "default": "Handcrafted with the finest ingredients"
+    },
+    {
+      "type": "text",
+      "id": "link_text_1",
+      "label": "Link text"
+    },
+    {
+      "type": "url",
+      "id": "link_1",
+      "label": "Link URL"
+    },
+    {
+      "type": "header",
+      "content": "Column 2"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_column_2",
+      "label": "Show column",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "image_2",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "heading_2",
+      "label": "Heading",
+      "default": "Fresh Daily"
+    },
+    {
+      "type": "text",
+      "id": "description_2",
+      "label": "Description",
+      "default": "Made fresh every day for maximum taste"
+    },
+    {
+      "type": "text",
+      "id": "link_text_2",
+      "label": "Link text"
+    },
+    {
+      "type": "url",
+      "id": "link_2",
+      "label": "Link URL"
+    },
+    {
+      "type": "header",
+      "content": "Column 3"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_column_3",
+      "label": "Show column",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "image_3",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "heading_3",
+      "label": "Heading",
+      "default": "Gift Ready"
+    },
+    {
+      "type": "text",
+      "id": "description_3",
+      "label": "Description",
+      "default": "Beautiful packaging perfect for gifting"
+    },
+    {
+      "type": "text",
+      "id": "link_text_3",
+      "label": "Link text"
+    },
+    {
+      "type": "url",
+      "id": "link_3",
+      "label": "Link URL"
+    },
+    {
+      "type": "header",
+      "content": "Column 4"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_column_4",
+      "label": "Show column",
+      "default": false
+    },
+    {
+      "type": "image_picker",
+      "id": "image_4",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "heading_4",
+      "label": "Heading",
+      "default": "Fast Delivery"
+    },
+    {
+      "type": "text",
+      "id": "description_4",
+      "label": "Description",
+      "default": "Quick and reliable shipping across India"
+    },
+    {
+      "type": "text",
+      "id": "link_text_4",
+      "label": "Link text"
+    },
+    {
+      "type": "url",
+      "id": "link_4",
+      "label": "Link URL"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom multicolumn"
+    }
+  ]
+}
+{% endschema %}

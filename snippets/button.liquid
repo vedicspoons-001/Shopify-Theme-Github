@@ -1,0 +1,45 @@
+{%- doc -%}
+  Glass Button (Safe + Effect Ready)
+
+  @param {string} link
+  @param {object} [block]
+{%- enddoc -%}
+
+{% assign block_settings = block.settings %}
+
+<a
+  {% if link == blank %}
+    role="link"
+    aria-disabled="true"
+  {% else %}
+    href="{{ link }}"
+  {% endif %}
+  class="
+    size-style
+    {{ block_settings.style_class }}
+    {{ block_settings.style_class }}--{{ block.id }}
+    custom-glass-btn
+  "
+  style="{% render 'size-style', settings: block_settings %}"
+  {%- if block_settings.open_in_new_tab -%}
+    target="_blank"
+    rel="noopener noreferrer"
+  {%- endif -%}
+  {{ block.shopify_attributes }}
+>
+  <span class="btn-inner">
+    <span class="btn-text">{{ block_settings.label }}</span>
+  </span>
+</a>
+
+{% stylesheet %}
+.link {
+  text-decoration: none;
+  text-decoration-color: currentcolor;
+}
+
+.link:hover {
+  color: var(--color-primary-hover);
+  text-decoration-color: transparent;
+}
+{% endstylesheet %}

@@ -1,0 +1,431 @@
+<cart-items-component
+  class="cart-items-component"
+  data-section-id="{{ section.id }}"
+>
+  <div class="section-background color-{{ section.settings.color_scheme }}"></div>
+  <div
+    class="section color-{{ section.settings.color_scheme }} section--{{ section.settings.section_width }}"
+  >
+    <div
+      class="cart-page spacing-style{% if cart.empty? %} cart-page--empty{% endif %}"
+      style="{% render 'spacing-style', settings: section.settings %}"
+    >
+      <div class="cart-page__title">
+        {%- content_for 'block', id: 'cart-page-title', type: '_cart-title' %}
+      </div>
+
+      <div class="cart-page__items">
+        {%- content_for 'block', id: 'cart-page-items', type: '_cart-products' %}
+      </div>
+
+      {%- unless cart.empty? -%}
+        <div class="cart-page__summary">
+          {%- content_for 'block', id: 'cart-page-summary', type: '_cart-summary' -%}
+        </div>
+      {%- endunless -%}
+
+      <div class="cart-page__more-blocks">
+        {%- content_for 'blocks' -%}
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+  {%- comment -%} CUSTOM CODE: GIFT ADD-ON MODALS - START {%- endcomment -%}
+  
+  {%- comment -%} POPUP 1: GIFT BAG MODAL {%- endcomment -%}
+  {%- unless cart.empty? -%}
+    <div id="gift-bag-modal" class="gift-addon-modal" style="display: none;">
+      <div class="gift-addon-modal-overlay"></div>
+      <div class="gift-addon-modal-content">
+        <button class="gift-addon-modal-close" aria-label="Close">&times;</button>
+        <div class="gift-addon-modal-body">
+          <h3 style="margin: 0 0 16px; font-size: 24px;">🎁 Add a Gift Bag?</h3>
+          <p style="margin: 0 0 12px; color: #666;">Make your gift extra special with our premium gift bag!</p>
+          <p class="gift-bag-price" style="font-weight: bold; font-size: 18px; margin: 0 0 24px;"></p>
+          <div class="gift-addon-modal-actions" style="display: flex; gap: 12px;">
+            <button class="gift-addon-btn gift-addon-btn-yes">Yes, Add It!</button>
+            <button class="gift-addon-btn gift-addon-btn-no">No, Thanks</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {%- endunless -%}
+
+  {%- comment -%} POPUP 2: RIBBON MODAL {%- endcomment -%}
+  {%- unless cart.empty? -%}
+    <div id="ribbon-modal" class="gift-addon-modal" style="display: none;">
+      <div class="gift-addon-modal-overlay"></div>
+      <div class="gift-addon-modal-content">
+        <button class="gift-addon-modal-close" aria-label="Close">&times;</button>
+        <div class="gift-addon-modal-body">
+          <h3 style="margin: 0 0 16px; font-size: 24px;">🎀 Choose Your Ribbon</h3>
+          <p style="margin: 0 0 24px; color: #666;">Select a ribbon option:</p>
+          <div class="ribbon-options" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+            <label class="ribbon-option" style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
+              <input type="radio" name="ribbon-choice" value="plain" data-ribbon-id="44487482867851" data-ribbon-price="30" style="width: 20px; height: 20px;">
+              <span style="flex: 1;"><strong>Plain Ribbon</strong> - ₹30</span>
+            </label>
+            <label class="ribbon-option" style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
+              <input type="radio" name="ribbon-choice" value="flowers" data-ribbon-id="44487494828171" data-ribbon-price="60" style="width: 20px; height: 20px;">
+              <span style="flex: 1;"><strong>Ribbon with Flowers</strong> - ₹60</span>
+            </label>
+          </div>
+          <div class="gift-addon-modal-actions" style="display: flex; gap: 12px;">
+            <button class="gift-addon-btn ribbon-add-btn">Add to Cart</button>
+            <button class="gift-addon-btn gift-addon-btn-no">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {%- endunless -%}
+
+  {%- comment -%} POPUP 3: GIFT CARD MODAL {%- endcomment -%}
+  {%- unless cart.empty? -%}
+    <div id="gift-card-modal" class="gift-addon-modal" style="display: none;">
+      <div class="gift-addon-modal-overlay"></div>
+      <div class="gift-addon-modal-content">
+        <button class="gift-addon-modal-close" aria-label="Close">&times;</button>
+        <div class="gift-addon-modal-body">
+          <h3 style="margin: 0 0 16px; font-size: 24px;">💌 Add a Gift Card Message</h3>
+          <p style="margin: 0 0 16px; color: #666;">Write a personalized message (FREE):</p>
+          <textarea id="gift-card-message" placeholder="Write your message here..." rows="4" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; margin-bottom: 24px; font-family: inherit;"></textarea>
+          <div class="gift-addon-modal-actions" style="display: flex; gap: 12px;">
+            <button class="gift-addon-btn gift-card-add-btn">Add to Cart</button>
+            <button class="gift-addon-btn gift-addon-btn-no">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {%- endunless -%}
+
+  {%- comment -%} CUSTOM CODE: GIFT ADD-ON MODALS - END {%- endcomment -%}
+
+</cart-items-component>
+
+{% stylesheet %}
+  .cart-page {
+    --cart-font-size--2xs: var(--font-size--2xs);
+    --cart-font-size--xs: var(--font-size--xs);
+    --cart-font-size--sm: var(--font-size--sm);
+    --cart-font-size--md: var(--font-size--md);
+    --cart-font-size--2xl: var(--font-size--2xl);
+
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0 var(--padding-5xl);
+  }
+
+  .cart-page--empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cart-page--empty .cart-page__title,
+  .cart-page--empty .cart-page__more-blocks {
+    margin-top: var(--margin-6xl);
+  }
+
+  .cart-page__more-blocks {
+    width: 100%;
+  }
+
+  .cart-page--empty .cart-title {
+    text-align: center;
+  }
+
+  .cart-page__main {
+    grid-column: 1;
+  }
+
+  .cart-page__summary {
+    padding-top: var(--padding-xl);
+  }
+
+  @media screen and (min-width: 750px) {
+    .cart-page {
+      grid-template-columns: 1fr min(50vw, var(--sidebar-width));
+      grid-template-rows: min-content min-content 1fr;
+    }
+
+    .cart-page__summary {
+      display: grid;
+      height: 100%;
+      grid-column: 2;
+      grid-row: 1 / -1;
+      align-self: stretch;
+      grid-template-rows: subgrid;
+      padding-top: 0;
+      /* needed to support blurred effect from hero section */
+      position: relative;
+    }
+
+    .section--page-width .cart-page:has(.cart__container--extend) {
+      grid-column: 2 / 4;
+      grid-template-columns: 1fr minmax(
+          var(--sidebar-width),
+          calc((100vw - var(--page-width)) / 2 + var(--sidebar-width))
+        );
+    }
+
+    .cart__container--extend {
+      height: 100%;
+    }
+  }
+
+  @media screen and (min-width: 1400px) {
+    .cart-page {
+      grid-template-columns: 1fr var(--sidebar-width);
+    }
+  }
+
+  /* ========================================
+     CUSTOM CODE: GIFT ADD-ONS POPUP STYLES
+     Added: Nov 2024
+     ======================================== */
+  
+  .gift-bag-trigger,
+  .ribbon-trigger,
+  .gift-card-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #f8f8f8;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+  }
+
+  .gift-bag-trigger:hover,
+  .ribbon-trigger:hover,
+  .gift-card-trigger:hover {
+    background: #fff;
+    border-color: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .gift-addon-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+  }
+
+  .gift-addon-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+  }
+
+  .gift-addon-modal-content {
+    position: relative;
+    max-width: 500px;
+    margin: 10% auto;
+    background: white;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .gift-addon-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 36px;
+    cursor: pointer;
+    color: #999;
+    line-height: 1;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    transition: color 0.2s ease;
+  }
+
+  .gift-addon-modal-close:hover {
+    color: #333;
+  }
+
+  .gift-addon-modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .gift-addon-btn {
+    flex: 1;
+    padding: 16px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .gift-addon-btn-yes, 
+  .ribbon-add-btn, 
+  .gift-card-add-btn {
+    background: #333;
+    color: white;
+  }
+
+  .gift-addon-btn-yes:hover, 
+  .ribbon-add-btn:hover, 
+  .gift-card-add-btn:hover {
+    background: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  .gift-addon-btn-yes:disabled, 
+  .ribbon-add-btn:disabled, 
+  .gift-card-add-btn:disabled {
+    background: #999;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .gift-addon-btn-no {
+    background: #f0f0f0;
+    color: #333;
+  }
+
+  .gift-addon-btn-no:hover {
+    background: #e0e0e0;
+  }
+
+  @media (max-width: 768px) {
+    .gift-addon-modal-content {
+      margin: 20% 16px;
+      padding: 24px;
+    }
+    
+    .gift-addon-modal-actions {
+      flex-direction: column;
+    }
+    
+    .gift-addon-btn {
+      width: 100%;
+    }
+  }
+{% endstylesheet %}
+
+
+{% schema %}
+{
+  "name": "t:names.cart",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "blocks": [
+    {
+      "type": "@theme"
+    },
+    {
+      "type": "@app"
+    },
+    {
+      "type": "text"
+    },
+    {
+      "type": "icon"
+    },
+    {
+      "type": "image"
+    },
+    {
+      "type": "button"
+    },
+    {
+      "type": "video"
+    },
+    {
+      "type": "group"
+    },
+    {
+      "type": "spacer"
+    }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,359 @@
+{% doc %}
+  @prompt
+    Create JavaScript code to hide unavailable variant options from product variant picker dropdowns. When all options in a variant selection are unavailable, hide the entire selection group. The code should check variant availability and dynamically hide sold out options while keeping available ones visible.
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-variant-filter-{{ ai_gen_id }} {
+    display: none;
+  }
+
+  .ai-variant-option-hidden-{{ ai_gen_id }} {
+    display: none !important;
+  }
+
+  .ai-variant-option-{{ ai_gen_id }} {
+    opacity: var(--unavailable-opacity);
+    pointer-events: var(--unavailable-pointer-events);
+  }
+{% endstyle %}
+
+<div class="ai-variant-filter-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <variant-visibility-controller-{{ ai_gen_id }}
+    data-hide-unavailable="{{ block.settings.hide_unavailable }}"
+    data-hide-empty-options="{{ block.settings.hide_empty_options }}"
+    data-unavailable-opacity="{{ block.settings.unavailable_opacity }}"
+    data-disable-unavailable="{{ block.settings.disable_unavailable }}"
+  ></variant-visibility-controller-{{ ai_gen_id }}>
+</div>
+
+<script>
+  (function() {
+    class VariantVisibilityController extends HTMLElement {
+      constructor() {
+        super();
+        this.hideUnavailable = this.dataset.hideUnavailable === 'true';
+        this.hideEmptyOptions = this.dataset.hideEmptyOptions === 'true';
+        this.unavailableOpacity = parseFloat(this.dataset.unavailableOpacity) / 100;
+        this.disableUnavailable = this.dataset.disableUnavailable === 'true';
+        
+        this.productForms = [];
+        this.variantSelectors = [];
+        this.productJson = null;
+        this.optionAvailability = {};
+        this.variantOptionElements = {};}
+
+      connectedCallback() {
+        this.initProductForms();
+        if (this.productForms.length > 0) {
+          this.setupVariantChangeListeners();
+          this.loadProductJson();
+        }
+      }
+
+      initProductForms() {
+        this.productForms = Array.from(document.querySelectorAll('form[action*="/cart/add"]'));
+      }
+
+      setupVariantChangeListeners() {
+        this.productForms.forEach(form => {
+          const selectors = Array.from(form.querySelectorAll('select[name="id"], select[name^="options["], input[name="id"], .single-option-selector'));
+          
+          selectors.forEach(selector => {
+            if (!this.variantSelectors.includes(selector)) {
+              this.variantSelectors.push(selector);
+              if (selector.tagName === 'SELECT') {
+                selector.addEventListener('change', this.onVariantChange.bind(this));
+                
+                // Index all option elements by their value
+                Array.from(selector.options).forEach(option => {
+                  if (!option.value || option.value === '') return;
+                  
+                  if (!this.variantOptionElements[selector.name]) {
+                    this.variantOptionElements[selector.name] = {};
+                  }this.variantOptionElements[selector.name][option.value] = option;
+                });
+              } else if (selector.type === 'radio') {
+                selector.addEventListener('change', this.onVariantChange.bind(this));
+                // Group radio buttons
+                const name = selector.name;
+                if (!this.variantOptionElements[name]) {
+                  this.variantOptionElements[name] = {};
+                }
+                
+                this.variantOptionElements[name][selector.value] = selector;
+              }
+            }
+          });
+        });
+      }
+
+      loadProductJson() {
+        // Look for product JSON in the page
+        const productJsonScript = document.querySelector('script[type="application/json"][data-product-json], #ProductJson-product-template');
+        
+        if (productJsonScript) {
+          try {
+            this.productJson = JSON.parse(productJsonScript.textContent);
+            this.analyzeVariantAvailability();
+            this.updateVariantOptions();
+          } catch (e) {
+            console.error('Error parsing product JSON:', e);
+          }
+        } else {
+          // Try to find product handle from URL
+          const pathParts = window.location.pathname.split('/');
+          const productIndex = pathParts.indexOf('products');
+          
+          if (productIndex !== -1 && pathParts.length > productIndex + 1) {
+            const productHandle = pathParts[productIndex + 1];
+            this.fetchProductJson(productHandle);
+          }
+        }
+      }
+
+      fetchProductJson(handle) {
+        fetch(`/products/${handle}.js`)
+          .then(response => response.json())
+          .then(productData => {
+            this.productJson = productData;
+            this.analyzeVariantAvailability();
+            this.updateVariantOptions();
+          })
+          .catch(error => {
+            console.error('Error fetching product data:', error);
+          });
+      }
+
+      analyzeVariantAvailability() {
+        if (!this.productJson || !this.productJson.variants) return;
+        
+        // Initialize option availability tracking
+        const { options } = this.productJson;
+        
+        options.forEach((option, index) => {
+          const optionIndex = index;
+          const optionName = `option${index + 1}`;
+          
+          this.optionAvailability[optionName] = {};
+          
+          // Track which option values are available with which selected values for other options
+          this.productJson.variants.forEach(variant => {
+            const optionValue = variant[optionName];
+            
+            if (!this.optionAvailability[optionName][optionValue]) {
+              this.optionAvailability[optionName][optionValue] = {
+                available: false,
+                availableWith: {}
+              };
+            }
+            
+            // If this variant is available, mark this option value as available
+            if (variant.available) {
+              this.optionAvailability[optionName][optionValue].available = true;
+              
+              // Track which other option values this is available with
+              options.forEach((otherOption, otherIndex) => {
+                if (otherIndex !== optionIndex) {
+                  const otherOptionName = `option${otherIndex + 1}`;
+                  const otherOptionValue = variant[otherOptionName];if (!this.optionAvailability[optionName][optionValue].availableWith[otherOptionName]) {
+                    this.optionAvailability[optionName][optionValue].availableWith[otherOptionName] = [];
+                  }
+                  
+                  if (!this.optionAvailability[optionName][optionValue].availableWith[otherOptionName].includes(otherOptionValue)) {
+                    this.optionAvailability[optionName][optionValue].availableWith[otherOptionName].push(otherOptionValue);
+                  }
+                }
+              });
+            }
+          });
+        });
+      }
+
+      getSelectedOptions() {
+        const selectedOptions = {};
+        
+        this.variantSelectors.forEach(selector => {
+          if (selector.tagName === 'SELECT') {
+            const optionName = selector.name.includes('options[') ? selector.name : `option${selector.dataset.index || 1}`;
+            selectedOptions[optionName] = selector.value;
+          } else if (selector.type === 'radio' && selector.checked) {
+            selectedOptions[selector.name] = selector.value;
+          }
+        });
+        
+        return selectedOptions;
+      }
+
+      isOptionAvailableWithCurrentSelections(optionName, optionValue, selectedOptions) {
+        if (!this.optionAvailability[optionName] || !this.optionAvailability[optionName][optionValue]) {
+          return false;
+        }
+        
+        // If the option itself is not available in any variant, return false
+        if (!this.optionAvailability[optionName][optionValue].available) {
+          return false;
+        }
+        
+        // If no other options are selected, this option is available
+        const otherSelectedOptions = { ...selectedOptions };
+        delete otherSelectedOptions[optionName];
+        
+        if (Object.keys(otherSelectedOptions).length === 0) {
+          return true;
+        }
+        
+        // Check if this option is available with the other selected options
+        for (const [otherOptionName, otherOptionValue] of Object.entries(otherSelectedOptions)) {
+          const availableWithOption = this.optionAvailability[optionName][optionValue].availableWith[otherOptionName];
+          
+          if (!availableWithOption || !availableWithOption.includes(otherOptionValue)) {
+            return false;
+          }
+        }
+        
+        return true;
+      }
+
+      onVariantChange() {
+        this.updateVariantOptions();
+      }
+
+      updateVariantOptions() {
+        if (!this.productJson) return;
+        
+        const selectedOptions = this.getSelectedOptions();
+        let emptyOptionGroups = new Set();
+        
+        // Process each option type (e.g., color, size)
+        for (const [optionName, optionElements] of Object.entries(this.variantOptionElements)) {
+          let hasAvailableOptions = false;
+          
+          // Process each option value within this option type
+          for (const [optionValue, element] of Object.entries(optionElements)) {
+            const isAvailable = this.isOptionAvailableWithCurrentSelections(optionName, optionValue, selectedOptions);
+            
+            if (isAvailable) {
+              hasAvailableOptions = true;
+            }
+            
+            // Handle the element visibility based on availability
+            this.updateOptionElementVisibility(element, isAvailable);
+          }
+          
+          // Track if this entire option group has no available options
+          if (!hasAvailableOptions && this.hideEmptyOptions) {
+            emptyOptionGroups.add(optionName);
+          }
+        }
+        
+        // Hide empty option groups if needed
+        if (this.hideEmptyOptions) {
+          this.updateEmptyOptionGroupsVisibility(emptyOptionGroups);
+        }
+      }
+
+      updateOptionElementVisibility(element, isAvailable) {
+        const optionContainer = this.getOptionContainer(element);
+        
+        if (this.hideUnavailable) {
+          // Completely hide unavailable options
+          if (isAvailable) {
+            element.classList.remove('ai-variant-option-hidden-{{ ai_gen_id }}');
+          } else {
+            element.classList.add('ai-variant-option-hidden-{{ ai_gen_id }}');
+          }
+        } else {
+          // Show but style unavailable options
+          element.classList.add('ai-variant-option-{{ ai_gen_id }}');
+          element.style.setProperty('--unavailable-opacity', isAvailable ? '1' : this.unavailableOpacity);
+          element.style.setProperty('--unavailable-pointer-events', (isAvailable || !this.disableUnavailable) ? 'auto' : 'none');
+        }
+      }
+
+      getOptionContainer(element) {
+        // Try to find the container for this option element
+        if (element.tagName === 'OPTION') {
+          return element.closest('select');
+        } else {
+          // For radio buttons, find the label or container
+          return element.closest('label, .radio-wrapper, .swatch-element');
+        }
+      }
+
+      updateEmptyOptionGroupsVisibility(emptyOptionGroups) {
+        // Find and hide option groups with no available options
+        this.variantSelectors.forEach(selector => {
+          const optionName = selector.name.includes('options[') ? selector.name : `option${selector.dataset.index || 1}`;
+          const container = this.getOptionGroupContainer(selector);
+          
+          if (container && emptyOptionGroups.has(optionName)) {
+            container.style.display = 'none';
+          } else if (container) {
+            container.style.display = '';
+          }
+        });
+      }
+
+      getOptionGroupContainer(selector) {
+        // Try various common parent containers for option groups
+        return selector.closest('.selector-wrapper, .radio-wrapper, .swatch, .product-form__input, .select-wrapper');
+      }
+    }
+
+    customElements.define('variant-visibility-controller-{{ ai_gen_id }}', VariantVisibilityController);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Variant Visibility",
+  "tag": null,
+  "class": "ai-variant-filter",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Unavailable Variants"
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_unavailable",
+      "label": "Hide unavailable options",
+      "default": true,
+      "info": "Completely hide options that are not available with current selections"
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_empty_options",
+      "label": "Hide empty option groups",
+      "default": true,
+      "info": "Hide entire option groups when all options become unavailable"
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_unavailable",
+      "label": "Disable unavailable options",
+      "default": true,
+      "info": "Make unavailable options non-clickable"
+    },
+    {
+      "type": "range",
+      "id": "unavailable_opacity",
+      "min": 10,
+      "max": 90,
+      "step": 10,
+      "unit": "%",
+      "label": "Unavailable option opacity",
+      "default": 40,
+      "info": "Opacity for unavailable options when not hidden"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Variant Visibility"
+    }
+  ]
+}
+{% endschema %}

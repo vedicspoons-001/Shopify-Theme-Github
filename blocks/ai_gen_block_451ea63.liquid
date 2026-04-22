@@ -1,0 +1,744 @@
+{% doc %}
+  @prompt Delivery Methods - Final fully functional
+{% enddoc %}
+
+{% assign dm_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .vs-dm-{{ dm_id }} { display: block; width: 100%; font-family: var(--font-body-family, 'Inter', sans-serif); }
+  .vs-dm__head-{{ dm_id }} { display: flex; align-items: center; gap: 9px; margin-bottom: 3px; }
+  .vs-dm__icon-{{ dm_id }} {
+    width: 26px; height: 26px;
+    background: linear-gradient(135deg, {{ block.settings.accent_color }}, #b8960a);
+    border-radius: 7px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; box-shadow: 0 2px 8px rgba(212,175,55,0.3);
+  }
+  .vs-dm__title-{{ dm_id }} {
+    font-size: 15px; font-weight: 700; color: {{ block.settings.text_color }}; margin: 0;
+    font-family: var(--font-heading-family, serif); letter-spacing: 0.02em;
+  }
+  @media (max-width: 749px) { .vs-dm__title-{{ dm_id }} { font-size: 14px; } }
+  .vs-dm__sub-{{ dm_id }} {
+    font-size: 10.5px; color: {{ block.settings.text_color }}; opacity: 0.35;
+    margin: 0 0 11px 35px; letter-spacing: 0.03em; font-style: italic;
+  }
+  .vs-dm__card-{{ dm_id }} {
+    background: {{ block.settings.card_color }}; border: 1px solid {{ block.settings.border_color }};
+    border-radius: 16px; padding: 12px;
+    box-shadow: 0 1px 3px rgba(61,35,20,0.04), 0 4px 20px rgba(61,35,20,0.07), inset 0 1px 0 rgba(255,255,255,0.8);
+  }
+  .vs-dm__addr-bar-{{ dm_id }} {
+    display: flex; align-items: center; gap: 8px; padding: 8px 11px;
+    background: linear-gradient(135deg, {{ block.settings.background_color }}, #fdf6e3);
+    border: 1px solid {{ block.settings.border_color }}; border-radius: 9px; margin-bottom: 11px;
+  }
+  .vs-dm__dot-{{ dm_id }} {
+    width: 6px; height: 6px; border-radius: 50%; background: #d1c4b0;
+    flex-shrink: 0; transition: background 0.4s ease, box-shadow 0.4s ease;
+  }
+  .vs-dm__dot-{{ dm_id }}.active { background: #22c55e; animation: vsDmPulse{{ dm_id }} 2.5s ease-in-out infinite; }
+  @keyframes vsDmPulse{{ dm_id }} {
+    0%,100% { box-shadow: 0 0 0 3px rgba(34,197,94,0.2); }
+    50%      { box-shadow: 0 0 0 6px rgba(34,197,94,0.08); }
+  }
+  .vs-dm__addr-text-{{ dm_id }} {
+    font-size: 11px; color: {{ block.settings.text_color }}; opacity: 0.5; flex: 1;
+    font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    letter-spacing: 0.02em; transition: opacity 0.3s ease;
+  }
+  .vs-dm__addr-text-{{ dm_id }}.has-address { opacity: 0.75; font-style: normal; font-weight: 600; }
+  .vs-dm__options-{{ dm_id }} { display: flex; flex-direction: column; gap: 8px; }
+  .vs-dm__option-{{ dm_id }} {
+    border: 1.5px solid {{ block.settings.border_color }}; border-radius: 12px; background: #fff;
+    cursor: pointer; overflow: hidden; position: relative;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease,
+                transform 0.2s cubic-bezier(0.34,1.56,0.64,1), background 0.25s ease;
+  }
+  .vs-dm__option-{{ dm_id }}::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: linear-gradient(180deg, {{ block.settings.accent_color }}, #b8960a);
+    transform: scaleY(0); transform-origin: center;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); border-radius: 0 2px 2px 0;
+  }
+  .vs-dm__option-{{ dm_id }}.selected::before { transform: scaleY(1); }
+  .vs-dm__option-{{ dm_id }}:hover { border-color: {{ block.settings.accent_color }}; box-shadow: 0 3px 14px rgba(212,175,55,0.12); transform: translateY(-1px); }
+  .vs-dm__option-{{ dm_id }}.selected {
+    border-color: {{ block.settings.accent_color }};
+    background: linear-gradient(135deg, #fffef9 0%, #fdf8e8 60%, #faf4dc 100%);
+    box-shadow: 0 2px 14px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.9); transform: translateY(0);
+  }
+  .vs-dm__option-{{ dm_id }}[data-method="local"] { display: none; }
+  .vs-dm__option-{{ dm_id }}[data-method="local"].vs-local-visible { display: block; }
+  .vs-dm__opt-row-{{ dm_id }} { display: flex; align-items: center; gap: 10px; padding: 11px 13px; }
+  @media (max-width: 749px) { .vs-dm__opt-row-{{ dm_id }} { padding: 10px 11px; gap: 9px; } }
+  .vs-dm__radio-{{ dm_id }} {
+    width: 17px; height: 17px; min-width: 17px; border-radius: 50%; border: 2px solid #d8cfc4;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); background: #fff; flex-shrink: 0;
+  }
+  .vs-dm__option-{{ dm_id }}.selected .vs-dm__radio-{{ dm_id }} {
+    background: {{ block.settings.accent_color }}; border-color: {{ block.settings.accent_color }};
+    box-shadow: 0 0 0 3px rgba(212,175,55,0.18); transform: scale(1.1);
+  }
+  .vs-dm__radio-dot-{{ dm_id }} {
+    width: 5px; height: 5px; border-radius: 50%; background: #fff; opacity: 0;
+    transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); transform: scale(0);
+  }
+  .vs-dm__option-{{ dm_id }}.selected .vs-dm__radio-dot-{{ dm_id }} { opacity: 1; transform: scale(1); }
+  .vs-dm__emoji-{{ dm_id }} {
+    font-size: 19px; line-height: 1; flex-shrink: 0; display: inline-block;
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .vs-dm__option-{{ dm_id }}.selected .vs-dm__emoji-{{ dm_id }} { transform: scale(1.15); }
+  @media (max-width: 749px) { .vs-dm__emoji-{{ dm_id }} { font-size: 17px; } }
+  .vs-dm__info-{{ dm_id }} { flex: 1; min-width: 0; }
+  .vs-dm__label-{{ dm_id }} {
+    font-size: 12.5px; font-weight: 700; color: {{ block.settings.text_color }}; line-height: 1.2;
+    letter-spacing: 0.01em; font-family: var(--font-heading-family, serif);
+  }
+  @media (max-width: 749px) { .vs-dm__label-{{ dm_id }} { font-size: 12px; } }
+  .vs-dm__meta-{{ dm_id }} {
+    font-size: 11px; color: {{ block.settings.text_color }}; opacity: 0.42;
+    margin-top: 2px; line-height: 1.3; font-style: italic;
+  }
+  .vs-dm__meta-{{ dm_id }}.has-date { font-style: normal; opacity: 0.6; font-weight: 500; }
+  @media (max-width: 749px) { .vs-dm__meta-{{ dm_id }} { font-size: 10.5px; } }
+  .vs-dm__charge-{{ dm_id }} {
+    font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+    white-space: nowrap; flex-shrink: 0; letter-spacing: 0.02em; transition: all 0.3s ease;
+  }
+  .vs-dm__charge-{{ dm_id }}.pending { color: transparent; background: transparent; }
+  .vs-dm__charge-{{ dm_id }}.free    { color: #15803d; background: rgba(21,128,61,0.08); box-shadow: 0 0 0 1px rgba(21,128,61,0.15); }
+  .vs-dm__charge-{{ dm_id }}.paid    { color: {{ block.settings.accent_color }}; background: rgba(212,175,55,0.1); box-shadow: 0 0 0 1px rgba(212,175,55,0.2); }
+  @media (max-width: 749px) { .vs-dm__charge-{{ dm_id }} { font-size: 10.5px; padding: 2px 7px; } }
+  .vs-dm__note-{{ dm_id }} {
+    font-size: 10px; color: {{ block.settings.text_color }}; opacity: 0.3;
+    padding: 0 13px 9px 40px; margin-top: -3px; letter-spacing: 0.02em; font-style: italic;
+  }
+  @media (max-width: 749px) { .vs-dm__note-{{ dm_id }} { padding: 0 11px 8px 38px; font-size: 9.5px; } }
+  .vs-dm__pickup-body-{{ dm_id }} {
+    display: none; padding: 10px 13px 13px;
+    border-top: 1px solid {{ block.settings.border_color }};
+    background: linear-gradient(180deg, rgba(253,248,232,0.5), transparent);
+  }
+  .vs-dm__option-{{ dm_id }}.selected .vs-dm__pickup-body-{{ dm_id }} { display: block; }
+  .vs-dm__pickup-hint-{{ dm_id }} {
+    display: flex; align-items: flex-start; gap: 9px; padding: 10px 12px;
+    background: linear-gradient(135deg, #fff8e1, #fff3cd);
+    border: 1.5px solid #f0c040; border-radius: 10px; margin-bottom: 10px;
+  }
+  .vs-dm__pickup-hint-icon-{{ dm_id }} { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .vs-dm__pickup-hint-text-{{ dm_id }} { font-size: 11px; color: #7a5c00; line-height: 1.5; font-weight: 500; }
+  .vs-dm__pickup-hint-text-{{ dm_id }} strong { font-weight: 700; display: block; margin-bottom: 2px; font-size: 11.5px; }
+  .vs-dm__date-label-{{ dm_id }} {
+    font-size: 9.5px; font-weight: 700; color: {{ block.settings.text_color }}; opacity: 0.35;
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 7px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .vs-dm__date-label-{{ dm_id }}::before {
+    content: ''; display: inline-block; width: 18px; height: 1px;
+    background: {{ block.settings.accent_color }}; opacity: 0.5;
+  }
+  .vs-dm__date-input-{{ dm_id }} {
+    width: 100%; padding: 9px 11px; border: 1.5px solid {{ block.settings.border_color }};
+    border-radius: 9px; font-size: 13px; background: #fff; color: {{ block.settings.text_color }};
+    outline: none; box-sizing: border-box; font-family: inherit;
+    transition: border-color 0.25s, box-shadow 0.25s; margin-bottom: 8px;
+  }
+  .vs-dm__date-input-{{ dm_id }}:focus { border-color: {{ block.settings.accent_color }}; box-shadow: 0 0 0 3px rgba(212,175,55,0.12); }
+  .vs-dm__confirm-btn-{{ dm_id }} {
+    width: 100%; padding: 10px 14px; background: {{ block.settings.text_color }};
+    color: #fff; border: none; border-radius: 9px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; transition: all 0.22s ease; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    letter-spacing: 0.03em; box-shadow: 0 2px 8px rgba(61,35,20,0.2);
+  }
+  .vs-dm__confirm-btn-{{ dm_id }}:hover { opacity: 0.88; transform: translateY(-1px); }
+  .vs-dm__confirm-btn-{{ dm_id }}.confirmed { background: #16a34a; }
+  .vs-dm__divider-{{ dm_id }} { display: flex; align-items: center; gap: 8px; margin: 12px 0 10px; opacity: 0.22; }
+  .vs-dm__divider-line-{{ dm_id }} { flex: 1; height: 1px; background: {{ block.settings.border_color }}; }
+  .vs-dm__divider-dot-{{ dm_id }} { width: 3px; height: 3px; border-radius: 50%; background: {{ block.settings.accent_color }}; }
+  .vs-dm__checkout-wrap-{{ dm_id }} {
+    overflow: hidden; max-height: 0; opacity: 0;
+    transition: max-height 0.4s cubic-bezier(0.34,1.2,0.64,1), opacity 0.3s ease, margin-top 0.3s ease;
+    margin-top: 0;
+  }
+  .vs-dm__checkout-wrap-{{ dm_id }}.visible { max-height: 80px; opacity: 1; margin-top: 12px; }
+  .vs-dm__checkout-{{ dm_id }} {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; padding: 14px 20px;
+    background: linear-gradient(135deg, #2d1a0e 0%, #4a2518 50%, #2d1a0e 100%);
+    color: #f5ead8; border: none; border-radius: 12px; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; font-family: var(--font-heading-family, serif); letter-spacing: 0.05em;
+    box-shadow: 0 4px 18px rgba(45,26,14,0.25); transition: all 0.25s ease;
+    position: relative; overflow: hidden; box-sizing: border-box;
+  }
+  .vs-dm__checkout-{{ dm_id }}::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 30%, rgba(212,175,55,0.12) 50%, transparent 70%);
+    transform: translateX(-100%); transition: transform 0.6s ease;
+  }
+  .vs-dm__checkout-{{ dm_id }}:hover::before { transform: translateX(100%); }
+  .vs-dm__checkout-{{ dm_id }}:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(45,26,14,0.3); }
+  .vs-dm__checkout-{{ dm_id }}.loading { opacity: 0.6; pointer-events: none; }
+  @media (max-width: 749px) { .vs-dm__checkout-{{ dm_id }} { font-size: 13px; padding: 13px 16px; } }
+  .vs-dm__co-badge-{{ dm_id }} {
+    width: 22px; height: 22px; background: rgba(212,175,55,0.18);
+    border: 1px solid rgba(212,175,55,0.3); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  #vs-addr-selector-block { transition: opacity 0.35s ease; }
+  #vs-addr-selector-block.vs-addr-hidden { opacity: 0; pointer-events: none; height: 0; overflow: hidden; margin: 0; padding: 0; }
+{% endstyle %}
+
+<div class="vs-dm-{{ dm_id }}" {{ block.shopify_attributes }}
+  data-cutoff="{{ block.settings.cutoff_hour }}"
+  data-ms="{{ block.settings.mumbai_standard_days }}"
+  data-masn="{{ block.settings.maha_standard_min }}" data-masx="{{ block.settings.maha_standard_max }}" data-mae="{{ block.settings.maha_express_days }}"
+  data-nbsn="{{ block.settings.neighbour_standard_min }}" data-nbsx="{{ block.settings.neighbour_standard_max }}" data-nbe="{{ block.settings.neighbour_express_days }}"
+  data-nesn="{{ block.settings.northeast_standard_min }}" data-nesx="{{ block.settings.northeast_standard_max }}" data-neen="{{ block.settings.northeast_express_min }}" data-neex="{{ block.settings.northeast_express_max }}"
+  data-insn="{{ block.settings.india_standard_min }}" data-insx="{{ block.settings.india_standard_max }}" data-inme="{{ block.settings.india_metro_express_days }}" data-inne="{{ block.settings.india_nonmetro_express_days }}"
+  data-rate-standard="{{ block.settings.rate_name_standard }}"
+  data-rate-express="{{ block.settings.rate_name_express }}"
+  data-rate-local="{{ block.settings.rate_name_local }}"
+  data-rate-pickup="{{ block.settings.rate_name_pickup }}"
+  data-pickup-location-id="{{ block.settings.pickup_location_id }}"
+>
+  <div class="vs-dm__head-{{ dm_id }}">
+    <div class="vs-dm__icon-{{ dm_id }}">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+        <rect x="1" y="3" width="15" height="13" rx="2"></rect>
+        <path d="M16 8h4l3 5v3h-7V8z"></path>
+        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+      </svg>
+    </div>
+    <h2 class="vs-dm__title-{{ dm_id }}">{{ block.settings.heading }}</h2>
+  </div>
+  <p class="vs-dm__sub-{{ dm_id }}">{{ block.settings.subheading }}</p>
+
+  <div class="vs-dm__card-{{ dm_id }}">
+    <div class="vs-dm__addr-bar-{{ dm_id }}">
+      <div class="vs-dm__dot-{{ dm_id }}" id="vs-dm-dot-{{ dm_id }}"></div>
+      <span class="vs-dm__addr-text-{{ dm_id }}" id="vs-dm-addr-{{ dm_id }}">Select a delivery address above</span>
+    </div>
+
+    <div class="vs-dm__options-{{ dm_id }}">
+
+      {% if block.settings.show_express %}
+      <div class="vs-dm__option-{{ dm_id }}" data-method="express">
+        <div class="vs-dm__opt-row-{{ dm_id }}">
+          <div class="vs-dm__radio-{{ dm_id }}"><div class="vs-dm__radio-dot-{{ dm_id }}"></div></div>
+          <span class="vs-dm__emoji-{{ dm_id }}">⚡</span>
+          <div class="vs-dm__info-{{ dm_id }}">
+            <div class="vs-dm__label-{{ dm_id }}">{{ block.settings.express_label }}</div>
+            <div class="vs-dm__meta-{{ dm_id }}" id="vs-dm-exp-meta-{{ dm_id }}">Select address to see delivery date</div>
+          </div>
+          <div class="vs-dm__charge-{{ dm_id }} pending" id="vs-dm-exp-charge-{{ dm_id }}"></div>
+        </div>
+        <div class="vs-dm__note-{{ dm_id }}">{{ block.settings.express_note }}</div>
+      </div>
+      {% endif %}
+
+      {% if block.settings.show_standard %}
+      <div class="vs-dm__option-{{ dm_id }}" data-method="standard">
+        <div class="vs-dm__opt-row-{{ dm_id }}">
+          <div class="vs-dm__radio-{{ dm_id }}"><div class="vs-dm__radio-dot-{{ dm_id }}"></div></div>
+          <span class="vs-dm__emoji-{{ dm_id }}">🚚</span>
+          <div class="vs-dm__info-{{ dm_id }}">
+            <div class="vs-dm__label-{{ dm_id }}">{{ block.settings.standard_label }}</div>
+            <div class="vs-dm__meta-{{ dm_id }}" id="vs-dm-std-meta-{{ dm_id }}">Select address to see delivery date</div>
+          </div>
+          <div class="vs-dm__charge-{{ dm_id }} pending" id="vs-dm-std-charge-{{ dm_id }}"></div>
+        </div>
+        <div class="vs-dm__note-{{ dm_id }}">{{ block.settings.standard_note }}</div>
+      </div>
+      {% endif %}
+
+      <div class="vs-dm__option-{{ dm_id }}" data-method="local">
+        <div class="vs-dm__opt-row-{{ dm_id }}">
+          <div class="vs-dm__radio-{{ dm_id }}"><div class="vs-dm__radio-dot-{{ dm_id }}"></div></div>
+          <span class="vs-dm__emoji-{{ dm_id }}">🛵</span>
+          <div class="vs-dm__info-{{ dm_id }}">
+            <div class="vs-dm__label-{{ dm_id }}">{{ block.settings.local_label }}</div>
+            <div class="vs-dm__meta-{{ dm_id }}" id="vs-dm-local-meta-{{ dm_id }}">Today (within 4–6 hrs)</div>
+          </div>
+          <div class="vs-dm__charge-{{ dm_id }} pending" id="vs-dm-local-charge-{{ dm_id }}"></div>
+        </div>
+        <div class="vs-dm__note-{{ dm_id }}">{{ block.settings.local_note }}</div>
+      </div>
+
+      {% if block.settings.show_pickup %}
+      <div class="vs-dm__option-{{ dm_id }}" data-method="pickup">
+        <div class="vs-dm__opt-row-{{ dm_id }}">
+          <div class="vs-dm__radio-{{ dm_id }}"><div class="vs-dm__radio-dot-{{ dm_id }}"></div></div>
+          <span class="vs-dm__emoji-{{ dm_id }}">🏪</span>
+          <div class="vs-dm__info-{{ dm_id }}">
+            <div class="vs-dm__label-{{ dm_id }}">{{ block.settings.pickup_label }}</div>
+            <div class="vs-dm__meta-{{ dm_id }}">{{ block.settings.store_name }} · {{ block.settings.store_hours }}</div>
+          </div>
+          <div class="vs-dm__charge-{{ dm_id }} free">FREE</div>
+        </div>
+        <div class="vs-dm__note-{{ dm_id }}">📍 {{ block.settings.store_address }}</div>
+        <div class="vs-dm__pickup-body-{{ dm_id }}">
+          <div class="vs-dm__pickup-hint-{{ dm_id }}">
+            <div class="vs-dm__pickup-hint-icon-{{ dm_id }}">👆</div>
+            <div class="vs-dm__pickup-hint-text-{{ dm_id }}">
+              <strong>At checkout — tap "Pickup" tab</strong>
+              On the next page select <strong>Pickup</strong> at the top to confirm collection at Lower Parel.
+            </div>
+          </div>
+          <div class="vs-dm__date-label-{{ dm_id }}">Choose Pickup Date</div>
+          <input type="date" class="vs-dm__date-input-{{ dm_id }}" id="vs-dm-pickup-date-{{ dm_id }}">
+          <button class="vs-dm__confirm-btn-{{ dm_id }}" id="vs-dm-confirm-{{ dm_id }}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Confirm Pickup Date
+          </button>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <div class="vs-dm__divider-{{ dm_id }}">
+      <div class="vs-dm__divider-line-{{ dm_id }}"></div>
+      <div class="vs-dm__divider-dot-{{ dm_id }}"></div>
+      <div class="vs-dm__divider-dot-{{ dm_id }}"></div>
+      <div class="vs-dm__divider-dot-{{ dm_id }}"></div>
+      <div class="vs-dm__divider-line-{{ dm_id }}"></div>
+    </div>
+
+    <div class="vs-dm__checkout-wrap-{{ dm_id }}" id="vs-dm-checkout-wrap-{{ dm_id }}">
+      <button class="vs-dm__checkout-{{ dm_id }}" id="vs-dm-checkout-{{ dm_id }}">
+        <span class="vs-dm__co-badge-{{ dm_id }}">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2.5">
+            <circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+        </span>
+        Proceed to Checkout
+      </button>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+(function(){
+  'use strict';
+  const ID   = '{{ dm_id }}';
+  const TZ   = 'Asia/Kolkata';
+  const wrap = document.querySelector('.vs-dm-' + ID);
+
+  const RATE = {
+    standard : wrap.dataset.rateStandard || 'Standard Delivery',
+    express  : wrap.dataset.rateExpress  || 'Express Delivery',
+    local    : wrap.dataset.rateLocal    || 'Local Delivery',
+    pickup   : wrap.dataset.ratePickup   || 'Store Pickup'
+  };
+
+  const PICKUP_LOCATION_ID = wrap.dataset.pickupLocationId || '13850512';
+  const MUMBAI_STD         = '{{ block.settings.charge_mumbai_std }}';
+  const MUMBAI_EXP         = '{{ block.settings.charge_mumbai_exp }}';
+  const MUMBAI_LOCAL       = '{{ block.settings.charge_mumbai_local }}';
+
+  let cartTotal       = 0;
+  let cartWeightGrams = 0;
+  let lastCartSig     = '';
+  let lastZip         = '';
+  let isRedirecting   = false;
+  let clickLock       = false;
+
+  function getTodayIST() {
+    const n=new Date(new Date().toLocaleString('en-US',{timeZone:TZ}));
+    return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+  }
+
+  function isMumbaiPin(pin) { const c=parseInt(pin); return c>=400001&&c<=400104; }
+
+  function getCharges(zone) {
+    if(zone==='mumbai') return {std:MUMBAI_STD, exp:MUMBAI_EXP, local:MUMBAI_LOCAL};
+    const stdCharge=cartTotal>=900?'FREE':'₹75';
+    const slabs=Math.ceil(cartWeightGrams/500)||1;
+    const expCharge=zone==='northeast'?'₹'+(slabs*100):'₹'+(slabs*75);
+    return {std:stdCharge, exp:expCharge, local:null};
+  }
+
+  function getAddrEl() { return document.getElementById('vs-addr-selector-block'); }
+  function showAddrBlock() {
+    const el=getAddrEl(); if(!el) return;
+    el.classList.remove('vs-addr-hidden'); el.style.display='';
+  }
+  function hideAddrBlock() {
+    const el=getAddrEl(); if(!el) return;
+    el.classList.add('vs-addr-hidden'); el.style.display='none';
+  }
+
+  function cfg() {
+    const d=wrap?wrap.dataset:{};
+    return {
+      ch:parseInt(d.cutoff||12), ms:parseInt(d.ms||4),
+      maSn:parseInt(d.masn||4), maSx:parseInt(d.masx||5), maE:parseInt(d.mae||1),
+      nbSn:parseInt(d.nbsn||4), nbSx:parseInt(d.nbsx||5), nbE:parseInt(d.nbe||2),
+      neSn:parseInt(d.nesn||8), neSx:parseInt(d.nesx||10),neEn:parseInt(d.neen||2),neEx:parseInt(d.neex||4),
+      inSn:parseInt(d.insn||6), inSx:parseInt(d.insx||8), inME:parseInt(d.inme||2),inNE:parseInt(d.inne||4),
+    };
+  }
+
+  const NEIGHBOURING=['gujarat','madhya pradesh','chhattisgarh','telangana','karnataka','goa'];
+  const NORTHEAST=['jammu and kashmir','jammu & kashmir','ladakh','arunachal pradesh','assam','manipur','meghalaya','mizoram','nagaland','sikkim','tripura'];
+  const METRO=['delhi','new delhi','bengaluru','bangalore','hyderabad','chennai','kolkata','ahmedabad','surat','jaipur','lucknow','kanpur','nagpur','indore','bhopal','patna','vadodara','ludhiana','coimbatore','kochi','thiruvananthapuram','bhubaneswar','guwahati','chandigarh','amritsar','agra','varanasi','rajkot','meerut','faridabad','ghaziabad','noida','gurugram','gurgaon','raipur','jodhpur','madurai','ranchi','jabalpur','gwalior','vijayawada','mysuru','mysore'];
+
+  async function getZone(pin) {
+    const isMum=isMumbaiPin(pin);
+    try {
+      const r=await fetch('https://api.postalpincode.in/pincode/'+pin);
+      const data=await r.json();
+      if(!data||data[0].Status!=='Success'||!data[0].PostOffice?.length)
+        return isMum?{zone:'mumbai',city:'Mumbai',isMetro:true}:{zone:'india',city:'',isMetro:false};
+      const p=data[0].PostOffice[0];
+      const city=(p.District||'').trim(),state=(p.State||'').trim().toLowerCase(),cl=city.toLowerCase();
+      if(isMum)  return {zone:'mumbai',city,isMetro:true};
+      if(state==='maharashtra') return {zone:'maharashtra',city,isMetro:false};
+      if(NEIGHBOURING.some(s=>state===s||state.includes(s))) return {zone:'neighbouring',city,isMetro:false};
+      if(NORTHEAST.some(s=>state===s||state.includes(s)))    return {zone:'northeast',city,isMetro:false};
+      return {zone:'india',city,isMetro:METRO.some(m=>cl===m||cl.includes(m))};
+    } catch(e) {
+      return isMum?{zone:'mumbai',city:'Mumbai',isMetro:true}:{zone:'india',city:'',isMetro:false};
+    }
+  }
+
+  function nowIST()       { return new Date(new Date().toLocaleString('en-US',{timeZone:TZ})); }
+  function addDays(d,n)   { const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+  function fmtDate(d)     { return d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'}); }
+  function dateRange(a,b) { return(!b||fmtDate(a)===fmtDate(b))?fmtDate(a):fmtDate(a)+' – '+fmtDate(b); }
+
+  function getDates(z) {
+    const c=cfg(),now=nowIST(),base=now.getHours()>=c.ch?1:0;
+    if(z.zone==='mumbai')       return {std:fmtDate(addDays(now,base+c.ms)),exp:base?'Tomorrow':'Today (within 12 hrs)',local:'Today (within 4–6 hrs)'};
+    if(z.zone==='maharashtra')  return {std:dateRange(addDays(now,base+c.maSn),addDays(now,base+c.maSx)),exp:fmtDate(addDays(now,base+c.maE)),local:null};
+    if(z.zone==='neighbouring') return {std:dateRange(addDays(now,base+c.nbSn),addDays(now,base+c.nbSx)),exp:fmtDate(addDays(now,base+c.nbE)),local:null};
+    if(z.zone==='northeast')    return {std:dateRange(addDays(now,base+c.neSn),addDays(now,base+c.neSx)),exp:dateRange(addDays(now,base+c.neEn),addDays(now,base+c.neEx)),local:null};
+    const ed=z.isMetro?c.inME:c.inNE;
+    return {std:dateRange(addDays(now,base+c.inSn),addDays(now,base+c.inSx)),exp:fmtDate(addDays(now,base+ed)),local:null};
+  }
+
+  const addrEl      = document.getElementById('vs-dm-addr-'+ID);
+  const dotEl       = document.getElementById('vs-dm-dot-'+ID);
+  const stdMeta     = document.getElementById('vs-dm-std-meta-'+ID);
+  const expMeta     = document.getElementById('vs-dm-exp-meta-'+ID);
+  const localMeta   = document.getElementById('vs-dm-local-meta-'+ID);
+  const stdCharge   = document.getElementById('vs-dm-std-charge-'+ID);
+  const expCharge   = document.getElementById('vs-dm-exp-charge-'+ID);
+  const localCharge = document.getElementById('vs-dm-local-charge-'+ID);
+  const localOpt    = wrap.querySelector('[data-method="local"]');
+  const checkoutBtn = document.getElementById('vs-dm-checkout-'+ID);
+  const checkoutWrap= document.getElementById('vs-dm-checkout-wrap-'+ID);
+  const confirmBtn  = document.getElementById('vs-dm-confirm-'+ID);
+  const dateInput   = document.getElementById('vs-dm-pickup-date-'+ID);
+
+  function showCheckout() { if(checkoutWrap) checkoutWrap.classList.add('visible'); }
+
+  function setCharge(el,val) {
+    if(!el) return;
+    if(!val){el.textContent='';el.className='vs-dm__charge-'+ID+' pending';return;}
+    const isFree=val==='FREE'||val==='₹0';
+    el.textContent=val; el.className='vs-dm__charge-'+ID+(isFree?' free':' paid');
+  }
+
+  function restoreAddrBar() {
+    const zip=sessionStorage.getItem('vs_selected_zip')||'';
+    const city=sessionStorage.getItem('vs_selected_city')||'';
+    if(zip&&/^\d{6}$/.test(zip)){
+      dotEl.classList.add('active');
+      addrEl.textContent='📍 PIN: '+zip+(city?' — '+city:'');
+      addrEl.classList.add('has-address');
+    }
+  }
+
+  function resetUI() {
+    dotEl.classList.remove('active');
+    addrEl.textContent='Select a delivery address above';
+    addrEl.classList.remove('has-address');
+    if(stdMeta)   {stdMeta.textContent='Select address to see delivery date';stdMeta.classList.remove('has-date');}
+    if(expMeta)   {expMeta.textContent='Select address to see delivery date';expMeta.classList.remove('has-date');}
+    if(localMeta) {localMeta.textContent='Today (within 4–6 hrs)';}
+    setCharge(stdCharge,null); setCharge(expCharge,null); setCharge(localCharge,null);
+    if(localOpt) localOpt.classList.remove('vs-local-visible');
+  }
+
+  function updateUI(pin,city) {
+    if(!pin||!/^\d{6}$/.test(pin)){resetUI();return;}
+    dotEl.classList.add('active');
+    addrEl.textContent='📍 PIN: '+pin+(city?' — '+city:'');
+    addrEl.classList.add('has-address');
+    if(stdMeta){stdMeta.textContent='Checking...';stdMeta.classList.remove('has-date');}
+    if(expMeta){expMeta.textContent='Checking...';expMeta.classList.remove('has-date');}
+    getZone(pin).then(z=>{
+      const dates=getDates(z),charges=getCharges(z.zone);
+      sessionStorage.setItem('vs_delivery_zone',z.zone);
+      if(stdMeta){stdMeta.textContent=dates.std;stdMeta.classList.add('has-date');}
+      if(expMeta){expMeta.textContent=dates.exp;expMeta.classList.add('has-date');}
+      setCharge(stdCharge,charges.std);
+      setCharge(expCharge,charges.exp);
+      if(z.zone==='mumbai'&&localOpt){
+        localOpt.classList.add('vs-local-visible');
+        if(localMeta) localMeta.textContent=dates.local||'Today (within 4–6 hrs)';
+        setCharge(localCharge,charges.local||MUMBAI_LOCAL);
+      } else if(localOpt){
+        localOpt.classList.remove('vs-local-visible');
+        if(sessionStorage.getItem('vs_delivery_method')==='local') selectMethod('express',true);
+      }
+      fetch('/cart/update.js',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({attributes:{'Delivery Pincode':pin,'Delivery Zone':z.zone,'Delivery City':z.city||city||''}})});
+    });
+  }
+
+  function selectMethod(method,updateCart) {
+    document.querySelectorAll('.vs-dm__option-'+ID).forEach(o=>{
+      o.classList.toggle('selected',o.dataset.method===method);
+    });
+    sessionStorage.setItem('vs_delivery_method',    method);
+    sessionStorage.setItem('vs_delivery_rate_name', RATE[method]||RATE.express);
+    if(method==='pickup'){
+      hideAddrBlock();
+      sessionStorage.removeItem('vs_selected_zip');
+      sessionStorage.removeItem('vs_selected_city');
+      sessionStorage.removeItem('vs_selected_addr_idx');
+    } else {
+      showAddrBlock();
+      const zip=sessionStorage.getItem('vs_selected_zip')||'';
+      const city=sessionStorage.getItem('vs_selected_city')||'';
+      if(zip){lastZip='';updateUI(zip,city);}
+    }
+    if(updateCart){
+      fetch('/cart/update.js',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({attributes:{'Delivery Method':RATE[method]||RATE.express}})});
+    }
+  }
+
+  document.querySelectorAll('.vs-dm__option-'+ID).forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      if(clickLock) return;
+      clickLock=true; setTimeout(()=>clickLock=false,400);
+      const method=opt.dataset.method;
+      if(method==='local'&&!opt.classList.contains('vs-local-visible')) return;
+      if(method==='pickup'&&confirmBtn){
+        confirmBtn.classList.remove('confirmed');
+        confirmBtn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Confirm Pickup Date';
+        sessionStorage.removeItem('vs_pickup_date');
+      }
+      selectMethod(method,true);
+      showCheckout();
+    });
+  });
+
+  if(dateInput){
+    dateInput.min=getTodayIST();
+    dateInput.addEventListener('change',()=>{
+      if(dateInput.value<getTodayIST()) dateInput.value=getTodayIST();
+    });
+  }
+
+  if(confirmBtn){
+    confirmBtn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const val=dateInput?.value;
+      if(!val){alert('Please select a pickup date');return;}
+      if(val<getTodayIST()){alert('Please select today or a future date');dateInput.value=getTodayIST();return;}
+      const formatted=new Date(val+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+      sessionStorage.setItem('vs_pickup_date',formatted);
+      fetch('/cart/update.js',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({attributes:{'Delivery Method':RATE.pickup,'Pickup Date':formatted}})});
+      confirmBtn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Confirmed — '+formatted;
+      confirmBtn.classList.add('confirmed');
+    });
+  }
+
+  // ── FIX: Reset redirect lock when user comes back from checkout ──
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible'){
+      isRedirecting=false;
+      if(checkoutBtn) checkoutBtn.classList.remove('loading');
+    }
+  });
+  window.addEventListener('pageshow',function(e){
+    if(e.persisted){
+      isRedirecting=false;
+      if(checkoutBtn) checkoutBtn.classList.remove('loading');
+    }
+  });
+
+  if(checkoutBtn){
+    checkoutBtn.addEventListener('click',async()=>{
+      if(isRedirecting) return;
+      isRedirecting=true;
+      checkoutBtn.classList.add('loading');
+      const method     =sessionStorage.getItem('vs_delivery_method')    ||'express';
+      const rateName   =sessionStorage.getItem('vs_delivery_rate_name') ||RATE.express;
+      const zip        =sessionStorage.getItem('vs_selected_zip')       ||'';
+      const city       =sessionStorage.getItem('vs_selected_city')      ||'';
+      const pickupDate =sessionStorage.getItem('vs_pickup_date')        ||'';
+      const firstName  =sessionStorage.getItem('vs_addr_first_name')    ||'';
+      const lastName   =sessionStorage.getItem('vs_addr_last_name')     ||'';
+      const address1   =sessionStorage.getItem('vs_addr_address1')      ||'';
+      const address2   =sessionStorage.getItem('vs_addr_address2')      ||'';
+      const province   =sessionStorage.getItem('vs_addr_province')      ||'';
+      const country    =sessionStorage.getItem('vs_addr_country')       ||'India';
+      const phone      =sessionStorage.getItem('vs_addr_phone')         ||'';
+
+      if(method==='pickup'){
+        try{
+          await fetch('/cart/update.js',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({attributes:{
+              'Delivery Method':RATE.pickup,'Pickup Date':pickupDate,
+              'Pickup Location':'Mumbai, Lower Parel',
+              'Delivery Pincode':'','Delivery City':'','Delivery Zone':''
+            }})});
+        }catch(e){}
+        const form=document.createElement('form');
+        form.method='POST';form.action='/cart';
+        [['checkout',''],['pickup_location_id',PICKUP_LOCATION_ID],
+         ['note','🏪 '+RATE.pickup+(pickupDate?' — '+pickupDate:'')]
+        ].forEach(([n,v])=>{
+          const i=document.createElement('input');
+          i.type='hidden';i.name=n;i.value=v;form.appendChild(i);
+        });
+        document.body.appendChild(form);form.submit();
+
+      } else {
+        try{
+          await fetch('/cart/update.js',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({attributes:{'Delivery Method':rateName,'Delivery Pincode':zip,'Delivery City':city}})});
+        }catch(e){}
+        const form=document.createElement('form');
+        form.method='POST';form.action='/cart';
+        const fields=[
+          ['checkout',''],
+          ['checkout[shipping_address][first_name]',firstName],
+          ['checkout[shipping_address][last_name]', lastName],
+          ['checkout[shipping_address][address1]',  address1],
+          ['checkout[shipping_address][address2]',  address2],
+          ['checkout[shipping_address][city]',      city],
+          ['checkout[shipping_address][province]',  province],
+          ['checkout[shipping_address][zip]',       zip],
+          ['checkout[shipping_address][country]',   country||'India'],
+          ['checkout[shipping_address][phone]',     phone],
+          ['checkout[attributes][Delivery Method]', rateName],
+          ['checkout[attributes][Delivery Pincode]',zip],
+          ['checkout[attributes][Delivery City]',   city],
+          ['note',(method==='express'?'⚡':method==='local'?'🛵':'🚚')+' '+rateName]
+        ];
+        fields.forEach(([n,v])=>{
+          if(!v&&n!=='checkout') return;
+          const i=document.createElement('input');
+          i.type='hidden';i.name=n;i.value=v||'';form.appendChild(i);
+        });
+        document.body.appendChild(form);form.submit();
+      }
+    });
+  }
+
+  function fetchCart() {
+    return fetch('/cart.js').then(r=>r.json()).then(cart=>{
+      const sig=cart.total_price+'_'+cart.total_weight+'_'+cart.item_count;
+      const changed=lastCartSig&&lastCartSig!==sig;
+      cartTotal=(cart.total_price||0)/100;
+      cartWeightGrams=cart.total_weight||0;
+      if(changed){
+        const zip=sessionStorage.getItem('vs_selected_zip')||'';
+        const city=sessionStorage.getItem('vs_selected_city')||'';
+        if(zip){lastZip='';updateUI(zip,city);}
+      }
+      lastCartSig=sig;
+    }).catch(()=>{});
+  }
+
+  function poll() {
+    const zip=sessionStorage.getItem('vs_selected_zip')||'';
+    const city=sessionStorage.getItem('vs_selected_city')||'';
+    if(zip!==lastZip){lastZip=zip;updateUI(zip,city);}
+  }
+
+  const savedMethod=sessionStorage.getItem('vs_delivery_method');
+  if(savedMethod){selectMethod(savedMethod,false);showCheckout();}
+  sessionStorage.removeItem('vs_pickup_date');
+  restoreAddrBar();
+
+  fetchCart().then(()=>{
+    const zip=sessionStorage.getItem('vs_selected_zip')||'';
+    const city=sessionStorage.getItem('vs_selected_city')||'';
+    if(zip) updateUI(zip,city);
+    setInterval(poll,600);
+    setInterval(fetchCart,2000);
+  });
+
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Delivery Methods",
+  "settings": [
+    { "type": "text",     "id": "heading",                    "label": "Heading",                   "default": "Delivery Methods" },
+    { "type": "text",     "id": "subheading",                  "label": "Subheading",                "default": "Choose how you'd like to receive your order" },
+    { "type": "header",   "content": "Shopify Rate Names — Must Match Exactly" },
+    { "type": "text",     "id": "rate_name_standard",          "label": "Standard Rate Name",        "default": "Standard Delivery" },
+    { "type": "text",     "id": "rate_name_express",           "label": "Express Rate Name",         "default": "Express Delivery" },
+    { "type": "text",     "id": "rate_name_local",             "label": "Local Delivery Rate Name",  "default": "Local Delivery" },
+    { "type": "text",     "id": "rate_name_pickup",            "label": "Pickup Rate Name",          "default": "Store Pickup" },
+    { "type": "header",   "content": "Pickup Location" },
+    { "type": "text",     "id": "pickup_location_id",          "label": "Shopify Location ID",       "default": "13850512" },
+    { "type": "header",   "content": "Option Visibility" },
+    { "type": "checkbox", "id": "show_standard",               "label": "Show Standard",             "default": true },
+    { "type": "checkbox", "id": "show_express",                "label": "Show Express",              "default": true },
+    { "type": "checkbox", "id": "show_pickup",                 "label": "Show Pickup",               "default": true },
+    { "type": "header",   "content": "Labels & Notes" },
+    { "type": "text",     "id": "standard_label",              "label": "Standard Label",            "default": "Standard Delivery" },
+    { "type": "text",     "id": "express_label",               "label": "Express Label",             "default": "Express Delivery" },
+    { "type": "text",     "id": "local_label",                 "label": "Local Delivery Label",      "default": "Local Delivery (Mumbai)" },
+    { "type": "text",     "id": "pickup_label",                "label": "Pickup Label",              "default": "Store Pickup" },
+    { "type": "text",     "id": "standard_note",               "label": "Standard Note",             "default": "Dispatch date, not delivery date" },
+    { "type": "text",     "id": "express_note",                "label": "Express Note",              "default": "Priority dispatch · Faster delivery" },
+    { "type": "text",     "id": "local_note",                  "label": "Local Delivery Note",       "default": "Mumbai only · Same/next day delivery" },
+    { "type": "header",   "content": "Mumbai Charges" },
+    { "type": "text",     "id": "charge_mumbai_std",           "label": "Mumbai Standard",           "default": "FREE above ₹900" },
+    { "type": "text",     "id": "charge_mumbai_exp",           "label": "Mumbai Express",            "default": "₹120" },
+    { "type": "text",     "id": "charge_mumbai_local",         "label": "Mumbai Local Delivery",     "default": "₹50" },
+    { "type": "header",   "content": "Store Pickup" },
+    { "type": "text",     "id": "store_name",                  "label": "Store Name",                "default": "Vedic Spoons Flagship Store" },
+    { "type": "text",     "id": "store_address",               "label": "Store Address",             "default": "Gala No. 9, A2 Shah Nahar Industrial Estate, Lower Parel (West), Mumbai – 400013" },
+    { "type": "text",     "id": "store_hours",                 "label": "Store Hours",               "default": "Mon–Sat 10AM–8PM, Sun 11AM–6PM" },
+    { "type": "header",   "content": "Dispatch Cutoff" },
+    { "type": "range",    "id": "cutoff_hour",                 "label": "Cutoff Hour (IST)",         "min": 0,  "max": 23, "step": 1,  "default": 12 },
+    { "type": "header",   "content": "Days — Mumbai" },
+    { "type": "range",    "id": "mumbai_standard_days",        "label": "Standard Days",             "min": 1,  "max": 10, "step": 1,  "default": 4 },
+    { "type": "header",   "content": "Days — Maharashtra" },
+    { "type": "range",    "id": "maha_standard_min",           "label": "Standard Min",              "min": 1,  "max": 10, "step": 1,  "default": 4 },
+    { "type": "range",    "id": "maha_standard_max",           "label": "Standard Max",              "min": 1,  "max": 10, "step": 1,  "default": 5 },
+    { "type": "range",    "id": "maha_express_days",           "label": "Express Days",              "min": 1,  "max": 10, "step": 1,  "default": 1 },
+    { "type": "header",   "content": "Days — Neighbouring States" },
+    { "type": "range",    "id": "neighbour_standard_min",      "label": "Standard Min",              "min": 1,  "max": 10, "step": 1,  "default": 4 },
+    { "type": "range",    "id": "neighbour_standard_max",      "label": "Standard Max",              "min": 1,  "max": 10, "step": 1,  "default": 5 },
+    { "type": "range",    "id": "neighbour_express_days",      "label": "Express Days",              "min": 1,  "max": 10, "step": 1,  "default": 2 },
+    { "type": "header",   "content": "Days — Northeast" },
+    { "type": "range",    "id": "northeast_standard_min",      "label": "Standard Min",              "min": 1,  "max": 20, "step": 1,  "default": 8 },
+    { "type": "range",    "id": "northeast_standard_max",      "label": "Standard Max",              "min": 1,  "max": 20, "step": 1,  "default": 10 },
+    { "type": "range",    "id": "northeast_express_min",       "label": "Express Min",               "min": 1,  "max": 10, "step": 1,  "default": 2 },
+    { "type": "range",    "id": "northeast_express_max",       "label": "Express Max",               "min": 1,  "max": 10, "step": 1,  "default": 4 },
+    { "type": "header",   "content": "Days — Rest of India" },
+    { "type": "range",    "id": "india_standard_min",          "label": "Standard Min",              "min": 1,  "max": 15, "step": 1,  "default": 6 },
+    { "type": "range",    "id": "india_standard_max",          "label": "Standard Max",              "min": 1,  "max": 15, "step": 1,  "default": 8 },
+    { "type": "range",    "id": "india_metro_express_days",    "label": "Metro Express Days",        "min": 1,  "max": 10, "step": 1,  "default": 2 },
+    { "type": "range",    "id": "india_nonmetro_express_days", "label": "Non-Metro Express Days",    "min": 1,  "max": 10, "step": 1,  "default": 4 },
+    { "type": "header",   "content": "Colors" },
+    { "type": "color",    "id": "background_color",            "label": "Background",                "default": "#f9f1e3" },
+    { "type": "color",    "id": "card_color",                  "label": "Card",                      "default": "#ffffff" },
+    { "type": "color",    "id": "border_color",                "label": "Border",                    "default": "#e8dcc8" },
+    { "type": "color",    "id": "accent_color",                "label": "Accent",                    "default": "#d4af37" },
+    { "type": "color",    "id": "text_color",                  "label": "Text",                      "default": "#3d2314" }
+  ],
+  "presets": [{ "name": "Delivery Methods" }]
+}
+{% endschema %}

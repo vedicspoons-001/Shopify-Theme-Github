@@ -1,0 +1,319 @@
+
+
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div
+  class="section section--{{ section.settings.section_width }} spacing-style {% if section.settings.color_scheme != blank %}color-{{ section.settings.color_scheme }}{% endif %}"
+  style="{% render 'spacing-padding', settings: section.settings %}"
+>
+  {{ section.settings.custom_liquid }}
+</div>
+
+{% schema %}
+{
+  "name": "t:names.custom_liquid",
+  "settings": [
+    {
+      "type": "liquid",
+      "id": "custom_liquid",
+      "label": "t:settings.custom_liquid",
+      "info": "t:info.custom_liquid"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.custom_liquid",
+      "category": "t:categories.layout"
+    }
+  ]
+}
+{% endschema %}
+
+
+
+
+
+<style>
+.variant-price {
+  font-weight: 700;
+  color: #D4AF37;
+  margin-left: 8px;
+}
+</style>
+
+<script>
+(function() {
+  
+  function initVariantPrices(container) {
+    container = container || document;
+    
+    console.log('=== Initializing variant prices ===');
+    
+    // Try to find product data in multiple ways
+    let productDataScript = container.querySelector('#product-data-for-variants');
+    if (!productDataScript) {
+      productDataScript = document.getElementById('product-data-for-variants');
+    }
+    
+    // If still not found, try to find it in the modal/quick-buy
+    if (!productDataScript) {
+      const allScripts = container.querySelectorAll('script[type="application/json"]');
+      allScripts.forEach(function(script) {
+        if (script.textContent.includes('"variants"')) {
+          productDataScript = script;
+        }
+      });
+    }
+    
+    if (!productDataScript) {
+      console.log('Product data not found');
+      return;
+    }
+    
+    let product;
+    try {
+      product = JSON.parse(productDataScript.textContent);
+    } catch(e) {
+      console.log('Error parsing product data');
+      return;
+    }
+    
+    const variants = product.variants;
+    if (!variants || variants.length === 0) {
+      console.log('No variants found');
+      return;
+    }
+    
+    console.log('Product:', product.title);
+    console.log('Variants:', variants.length);
+    
+    // Find ALL variant pickers in the container
+    const pickers = container.querySelectorAll('variant-picker');
+    
+    console.log('Found', pickers.length, 'variant pickers');
+    
+    pickers.forEach(function(picker, pickerIndex) {
+      console.log('Processing picker', pickerIndex + 1);
+      
+      const fieldsets = picker.querySelectorAll('fieldset');
+      if (fieldsets.length === 0) {
+        console.log('No fieldsets in this picker');
+        return;
+      }
+      
+      // Determine which option has prices
+      let priceOptionIndex = -1;
+      
+      fieldsets.forEach(function(fs, idx) {
+        const inputs = fs.querySelectorAll('input[type="radio"]');
+        let hasPriceInName = false;
+        
+        inputs.forEach(function(inp) {
+          if (inp.value && inp.value.match(/₹[\d,]+/)) {
+            hasPriceInName = true;
+          }
+        });
+        
+        if (hasPriceInName) {
+          priceOptionIndex = idx;
+        }
+      });
+      
+      if (priceOptionIndex === -1) {
+        priceOptionIndex = fieldsets.length - 1;
+      }
+      
+      console.log('Price option index:', priceOptionIndex);
+      
+      // Build price map
+      const priceMap = {};
+      
+      variants.forEach(function(v) {
+        let price = parseFloat(v.price);
+        if (price > 10000) price = price / 100;
+        price = Math.round(price);
+        
+        const allOptions = [v.option1, v.option2, v.option3].filter(Boolean);
+        const priceOptionValue = allOptions[priceOptionIndex];
+        const cleanPriceOption = (priceOptionValue || '').replace(/\s*₹[\d,]+/g, '').trim();
+        
+        const key = [];
+        for (let i = 0; i < priceOptionIndex; i++) {
+          key.push(allOptions[i]);
+        }
+        
+        let current = priceMap;
+        key.forEach(function(k) {
+          if (!current[k]) current[k] = {};
+          current = current[k];
+        });
+        
+        current[cleanPriceOption] = price;
+      });
+      
+      console.log('Price map:', priceMap);
+      
+      function update() {
+        const selectedValues = [];
+        
+        for (let i = 0; i < priceOptionIndex; i++) {
+          const sel = fieldsets[i].querySelector('input:checked');
+          if (!sel) return;
+          selectedValues.push(sel.value);
+        }
+        
+        setTimeout(function() {
+          const priceFieldset = fieldsets[priceOptionIndex];
+          const inputs = priceFieldset.querySelectorAll('input[type="radio"]');
+          
+          inputs.forEach(function(inp) {
+            const optValue = inp.value.replace(/\s*₹[\d,]+/g, '').trim();
+            const lbl = inp.parentElement.querySelector('.variant-option__button-label__text');
+            
+            if (lbl) {
+              let current = priceMap;
+              let found = true;
+              
+              selectedValues.forEach(function(val) {
+                if (current[val]) {
+                  current = current[val];
+                } else {
+                  found = false;
+                }
+              });
+              
+              if (found && current[optValue]) {
+                const price = current[optValue];
+                lbl.innerHTML = optValue + ' <span class="variant-price">₹' + price + '</span>';
+                console.log('Updated:', optValue, '= ₹' + price);
+              }
+            }
+          });
+        }, 50);
+      }
+      
+      // Add event listeners
+      for (let i = 0; i < priceOptionIndex; i++) {
+        fieldsets[i].querySelectorAll('input').forEach(function(inp) {
+          inp.addEventListener('change', update);
+        });
+      }
+      
+      fieldsets[priceOptionIndex].querySelectorAll('input').forEach(function(inp) {
+        inp.addEventListener('change', update);
+      });
+      
+      new MutationObserver(update).observe(fieldsets[priceOptionIndex], {
+        childList: true,
+        subtree: true,
+        characterData: true
+      });
+      
+      update();
+    });
+    
+    console.log('✓ Initialization complete');
+  }
+  
+  // Run on page load
+  function runInit() {
+    setTimeout(function() {
+      initVariantPrices(document);
+    }, 1000);
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runInit);
+  } else {
+    runInit();
+  }
+  
+  // Watch for ANY new content being added (modals, quick buy, etc.)
+  const bodyObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      mutation.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1 && node.querySelector) {
+          // If variant-picker was added, initialize it
+          if (node.querySelector('variant-picker') || node.tagName === 'VARIANT-PICKER') {
+            console.log('New variant picker detected!');
+            setTimeout(function() {
+              initVariantPrices(node.closest('dialog, [role="dialog"], .modal, .quick-buy') || node);
+            }, 500);
+          }
+          
+          // Check for modal/dialog/quick-buy containers
+          if (node.matches && (node.matches('dialog') || node.matches('[role="dialog"]') || node.matches('.modal') || node.matches('.quick-buy'))) {
+            console.log('Modal/Quick-buy detected!');
+            setTimeout(function() {
+              initVariantPrices(node);
+            }, 800);
+          }
+        }
+      });
+    });
+  });
+  
+  bodyObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+  
+  // Also listen for dialog open events
+  document.addEventListener('click', function(e) {
+    // If a quick buy button was clicked, wait and re-init
+    const target = e.target;
+    if (target && (target.matches('[data-quick-buy]') || target.closest('[data-quick-buy]') || target.textContent.includes('Quick'))) {
+      console.log('Quick buy clicked, waiting for modal...');
+      setTimeout(function() {
+        initVariantPrices(document);
+      }, 1200);
+    }
+  });
+  
+})();
+</script>
